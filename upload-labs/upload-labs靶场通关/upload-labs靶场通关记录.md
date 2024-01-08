@@ -59,3 +59,47 @@
 
 ## Pass 02
 
++ 首先查看提示:
+
+~~~ tex
+本pass在服务端对数据包的MIME进行检查！
+~~~
+
+![Pass02_1](./img/Pass02_1.PNG)
+
+
+
++ 上传<code>pass-02</code>的脚本文件
+
+![Pass02_2](./img/Pass02_2.PNG)
+
+
+
++ 在burpsuite软件拦截包后修改上传的PHP文件的content-type为image/png
+
+![Pass02_3](./img/Pass02_3.png)
+
+![Pass02_4](./img/Pass02_4.png)
+
+
+
++ 可以看到文件成功上传
+
+![Pass02_5](./img/Pass02_5.PNG)
+
+
+
++ 右键在另外的标签页打开刚上传的文件
+
+![Pass02_6](./img/Pass02_6.PNG)
+
+![Pass02_7](./img/Pass02_7.PNG)
+
+注入成功
+
+
+
+## Pass 03
+
+
+

