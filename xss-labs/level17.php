@@ -13,7 +13,7 @@ confirm("完成的不错！");
 <h1 align=center>欢迎来到level17</h1>
 <?php
 ini_set("display_errors", 0);
-echo "<embed src=xsf01.swf?".htmlspecialchars($_GET["arg01"])."=".htmlspecialchars($_GET["arg02"])." width=100% heigth=100%>";
+echo "<embed src=index.png?".htmlspecialchars($_GET["arg01"])."=".htmlspecialchars($_GET["arg02"])." width=100% heigth=100%>";
 ?>
 <h2 align=center>成功后，<a href=level18.php?arg01=a&arg02=b>点我进入下一关</a></h2>
 </body>
