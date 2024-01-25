@@ -20,25 +20,33 @@
 
 ```
 服务器端代码：
-&lt;?php 
+<?php 
 	// Is there any input? 
 	if( array_key_exists( "name", $_GET ) &amp;&amp; $_GET[ 'name' ] != NULL ) { 
 	    // Feedback for end user 
-	    echo '&lt;pre&gt;Hello ' . $_GET[ 'name' ] . '&lt;/pre&gt;'; 
+	    echo '<pre>Hello ' . $_GET[ 'name' ] . '</pre>'; 
 	} 
-?&gt;
+?>
 代码直接引用了 name 参数，并没有做任何的过滤和检查，存在明显的 XSS 漏洞。
 
 ```
 
 
 
-> 持久型跨站脚本（Persistent Cross-Site Scripting）也等同于存储型跨站脚本（Stored Cross-Site Scripting）。<br/> 此类 XSS 不需要用户单击特定 URL 就能执行跨站脚本，攻击者事先将恶意代码上传或储存到漏洞服务器中，只要受害者浏览包含此恶意代码的页面就会执行恶意代码。持久型 XSS 一般出现在网站留言、评论、博客日志等交互处，恶意脚本存储到客户端或者服务端的数据库中。
+> 持久型跨站脚本（Persistent Cross-Site Scripting）也等同于存储型跨站脚本（Stored Cross-Site Scripting）。<br/>
+>
+> 
+>
+>  此类 XSS 不需要用户单击特定 URL 就能执行跨站脚本，攻击者事先将恶意代码上传或储存到漏洞服务器中，只要受害者浏览包含此恶意代码的页面就会执行恶意代码。持久型 XSS 一般出现在网站留言、评论、博客日志等交互处，恶意脚本存储到客户端或者服务端的数据库中。
+>
+> 
+>
+> 存储型XSS，持久化，代码是存储在服务器中的，如在个人信息或发表文章等地方，插入代码，如果没有过滤或过滤不严，那么这些代码将储存到服务器中，用户访问该页面的时候触发代码执行。这种XSS比较危险，容易造成蠕虫，盗窃cookie
 
 
 ```
 服务器端代码：
-&lt;?php
+<?php
   if( isset( $_POST[ 'btnSign' ] ) ) {
     // Get input
     $message = trim( $_POST[ 'mtxMessage' ] );
@@ -50,33 +58,41 @@
     $name = mysql_real_escape_string( $name );
     // Update database
     $query  = "INSERT INTO guestbook ( comment, name ) VALUES ( '$message', '$name' );";
-    $result = mysql_query( $query ) or die( '&lt;pre&gt;' . mysql_error() . '&lt;/pre&gt;' );
+    $result = mysql_query( $query ) or die( '<pre>' . mysql_error() . '</pre>' );
     //mysql_close(); }
-?&gt;
+?>
 代码只对一些空白符、特殊符号、反斜杠进行了删除或转义，没有做 XSS 的过滤和检查，且存储在数据库中，明显存在存储型 XSS 漏洞。
 
 ```
 
 
 
-> 传统的 XSS 漏洞一般出现在服务器端代码中，而 DOM-Based XSS 是基于 DOM 文档对象模型的一种漏洞，所以，受客户端浏览器的脚本代码所影响。<br/> 客户端 JavaScript 可以访问浏览器的 DOM 文本对象模型，因此能够决定用于加载当前页面的 URL。换句话说，客户端的脚本程序可以通过 DOM 动态地检查和修改页面内容，它不依赖于服务器端的数据，而从客户端获得 DOM 中的数据（如从 URL 中提取数据）并在本地执行。另一方面，浏览器用户可以操纵 DOM 中的一些对象，例如 URL、location 等。用户在客户端输入的数据如果包含了恶意 JavaScript 脚本，而这些脚本没有经过适当的过滤和消毒，那么应用程序就可能受到基于 DOM 的 XSS 攻击。
+> 传统的 XSS 漏洞一般出现在服务器端代码中，而 DOM-Based XSS 是基于 DOM 文档对象模型的一种漏洞，所以，受客户端浏览器的脚本代码所影响。<br/>
+>
+> 
+>
+>  客户端 JavaScript 可以访问浏览器的 DOM 文本对象模型，因此能够决定用于加载当前页面的 URL。换句话说，客户端的脚本程序可以通过 DOM 动态地检查和修改页面内容，它不依赖于服务器端的数据，而从客户端获得 DOM 中的数据（如从 URL 中提取数据）并在本地执行。另一方面，浏览器用户可以操纵 DOM 中的一些对象，例如 URL、location 等。用户在客户端输入的数据如果包含了恶意 JavaScript 脚本，而这些脚本没有经过适当的过滤和消毒，那么应用程序就可能受到基于 DOM 的 XSS 攻击。
+>
+> 
+>
+> 不经过后端，DOM-XSS漏洞是基于文档对象模型(Document Objeet Model,DOM)的一种漏洞，DOM-XSS是通过url传入参数去控制触发的，其实也属于反射型XSS。
 
 
 ```
 HTML代码
-&lt;html&gt;
-  &lt;head&gt;
-    &lt;title&gt;DOM-XSS test&lt;/title&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;script&gt;
+<html>
+  <head>
+    <title>DOM-XSS test</title>
+  </head>
+  <body>
+    <script>
       var a=document.URL;
       document.write(a.substring(a.indexOf("a=")+2,a.length));
-    &lt;/script&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
+    </script>
+  </body>
+</html>
 
 将代码保存在 domXSS.html 中，浏览器访问：
-http://127.0.0.1/domXSS.html?a=&lt;script&gt;alert('XSS')&lt;/script&gt;
+http://127.0.0.1/domXSS.html?a=<script>alert('XSS')</script>
 
 ```

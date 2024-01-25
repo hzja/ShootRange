@@ -14,7 +14,7 @@ confirm("完成的不错！");
 <h1 align=center>欢迎来到level18</h1>
 <?php
 ini_set("display_errors", 0);
-echo "<embed src=xsf02.swf?".htmlspecialchars($_GET["arg01"])."=".htmlspecialchars($_GET["arg02"])." width=100% heigth=100%>";
+echo "<embed src=index.php?".htmlspecialchars($_GET["arg01"])."=".htmlspecialchars($_GET["arg02"])." width=100% heigth=100%>";
 ?>
 </body>
 </html>
