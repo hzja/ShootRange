@@ -4,7 +4,11 @@
 
 + 源码位置：https://github.com/c0ny1/upload-labs
 
-+ 参考通关秘籍：[Upload-labs靶场通关攻略(全网最全最完整)](https://blog.csdn.net/weixin_47598409/article/details/115050869)或者[Upload-labs靶场通关笔记(含代码审计)](https://blog.csdn.net/weixin_54894046/article/details/127239720?ops_request_misc=%7B%22request%5Fid%22%3A%22170438292316800215095603%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170438292316800215095603&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-3-127239720-null-null.142^v99^control&utm_term=upload-labs通关&spm=1018.2226.3001.4187)
++ 参考通关秘籍：
+  + [Upload-labs靶场通关攻略(全网最全最完整)](https://blog.csdn.net/weixin_47598409/article/details/115050869)
+  + [Upload-labs靶场通关笔记(含代码审计)](https://blog.csdn.net/weixin_54894046/article/details/127239720?ops_request_misc=%7B%22request%5Fid%22%3A%22170438292316800215095603%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170438292316800215095603&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-3-127239720-null-null.142^v99^control&utm_term=upload-labs通关&spm=1018.2226.3001.4187)
+  + [upload-labs详解1-19关通关全解(最全最详细)](https://blog.csdn.net/qq_53003652/article/details/129969951?ops_request_misc=%7B%22request%5Fid%22%3A%22170636374116800222847150%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170636374116800222847150&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-129969951-null-null.142^v99^pc_search_result_base4&utm_term=upload-labs通关&spm=1018.2226.3001.4187)
+
 + 本地打开地址：<code>http://localhost/upload-labs</code>
 
 ## Pass 01
@@ -188,3 +192,191 @@ AddType application/x-httpd-php .php .phtml .php5 .php3
 + 如图，上传成功
 
 ![Pass03_5](./img/Pass03_5.png)
+
+
+
+## Pass04
+
++ 查看下提示信息
+
+~~~ shell
+本pass禁止上传.php|.php5|.php4|.php3|.php2|php1|.html|.htm|.phtml|.pHp|.pHp5|.pHp4|.pHp3|.pHp2|pHp1|.Html|.Htm|.pHtml|.jsp|.jspa|.jspx|.jsw|.jsv|.jspf|.jtml|.jSp|.jSpx|.jSpa|.jSw|.jSv|.jSpf|.jHtml|.asp|.aspx|.asa|.asax|.ascx|.ashx|.asmx|.cer|.aSp|.aSpx|.aSa|.aSax|.aScx|.aShx|.aSmx|.cEr|.sWf|.swf后缀文件！
+~~~
+
+
+
++ 这题使用的是<code>php5</code>环境，重新上传<code>pass3</code>需上传的<code>php5</code>或其他类型文件均失败
+
+![Pass04_1](./img/Pass04_1.png)
+
+
+
++ 发现有一个文件没有过滤，是上传过程中经常用到的<code>.htaccess</code>文件
+
+~~~ tex
+.htaccess基础知识*重点内容*
+.htaccess文件(或者”分布式配置文件”）,全称是Hypertext Access(超文本入口)。提供了针对目录改变配置的方法， 即，在一个特定的文档目录中放置一个包含一个或多个指令的文件， 以作用于此目录及其所有子目录。作为用户，所能使用的命令受到限制。管理员可以通过Apache的AllowOverride指令来设置。
+
+启用.htaccess，需要修改httpd.conf，启用AllowOverride，并可以用AllowOverride限制特定命令的使用。如果需要使用.htaccess以外的其他文件名，可以用AccessFileName指令来改变。例如，需要使用.config ，则可以在服务器配置文件中按以下方法配置：AccessFileName .config 。
+
+它里面有这样一段代码：AllowOverride None，如果我们把None改成All
+~~~
+
+
+
+~~~ tex
+概述来说，htaccess文件是Apache服务器中的一个配置文件，它负责相关目录下的网页配置。通过htaccess文件，可以帮我们实现：网页301重定向、自定义404错误页面、改变文件扩展名、允许/阻止特定的用户或者目录的访问、禁止目录列表、配置默认文档等功能。
+
+Unix、Linux系统或者是任何版本的Apache Web服务器都是支持.htaccess的，但是有的主机服务商可能不允许你自定义自己的.htaccess文件。
+
+启用.htaccess，需要修改httpd.conf，启用AllowOverride，并可以用AllowOverride限制特定命令的使用。如果需要使用.htaccess以外的其他文件名，可以用AccessFileName指令来改变。例如，需要使用.config ，则可以在服务器配置文件中按以下方法配置：AccessFileName .config 。
+
+笼统地说，.htaccess可以帮我们实现包括：文件夹密码保护、用户自动重定向、自定义错误页面、改变你的文件扩展名、封禁特定IP地址的用户、只允许特定IP地址的用户、禁止目录列表，以及使用其他文件作为index文件等一些功能。
+~~~
+
+
+
++ 漏洞原理
+
+~~~ tex
+利用上传到服务器上的.htaccess文件修改当前目录下的解析规则
+~~~
+
+
+
++ 查看源码
+
+![Pass04_3](./img/Pass04_3.png)
+
+
+
++ 形成条件
+
+~~~ tex
+1.php5.6以下不带nts的版本
+2.服务器没有禁止.htaccess文件的上传，且服务商允许用户使用自定义.htaccess文件
+~~~
+
+
+
+1. <code>.htaccess</code>参数
+
+常见配法有以下几种：
+
+~~~ tex
+AddHandler php5-script .jpg
+AddType application/x-httpd-php .jpg
+SetHandler application/x-httpd-php
+
+Sethandler 将该目录及子目录的所有文件均映射为php文件类型。
+Addhandler 使用 php5-script 处理器来解析所匹配到的文件。
+AddType 将特定扩展名文件映射为php文件类型。
+~~~
+
+
+
+<code>.htaccess</code>文件内容如下：
+
+~~~ shell
+SetHandler application/x-httpd-php .png
+~~~
+
+
+
+### 方法一
+
+先上传<code>.htaccess</code>方法再上传后缀<code>png</code>文件，将该目录及子目录的所有文件均映射为 <code>php</code>文件
+
+>使用的php版本为php5.4.45 运行模式为 **Apache 2.0 Handler**
+>
+> 在php的nts版本下面无法解析png图片为php文件 该运行模式为CGI/FastCGI
+
+
+
++ <code>nts</code>和非<code>nts</code>版本区别对比
+
+> 在PHP 开发和生产环境搭建过程中，需要安装PHP语言解析器。官方提供了2种类型的版本，线程安全（TS）版和非线程安全（NTS）版，有时后我们开发环境和实际生产的环境有所不同，因此也需要选择安装对应的PHP版本。
+>
+>  
+>
+> **1、简介**
+>
+> **TS:**
+>
+> 　　TS(*Thread-Safety*)即线程安全，多线程访问时，采用了加锁机制，当一个线程访问该类的某个数据时进行数据加锁保护，其他线程不能同时进行访问该数据，直到该线程读取完毕，其他线程才可访问使用该数据，好处是不会出现数据不一致或者数据污染的情况，但耗费的时间要比 NTS 长。
+>
+> 　　PHP以 ISAPI 方式（Apache 常用方式）加载的时候选择TS版本。
+>
+>  
+>
+> **NTS:**
+>
+> 　　NTS(*None-Thread Safe*)即非线程安全，不提供数据访问保护，有可能出现多个线程先后或同时操作同一数据的情况，容易造成数据错乱（即脏数据），一般操作的执行时间要比 TS 短。
+>
+> 　　PHP以FAST-CGI方式加载运行的时候选择TNS版，具有更好的性能；
+>
+> 　　
+>
+> **ISAPI：**
+>
+> 　　ISAPI(*Internet Server Application Programming Interface*), 通常是指被http服务器所加载，以服务器的模块形式运行，由微 软提出，故只能在win平台上运行，如win下的apache,iis[用fast cgi 方式工作更稳定]，而linux上php 则以 Apache模块（常用方式）或者php-fpm（该方式更适合于NGINX+PHP 运行）的方式运行。
+>
+>  
+>
+> **CGI：**
+>
+> 　　cgi(*Common Gateway Interface*):HTTP服务器与客户端机器上的程序进行“交谈”的一种工具,简而言之，cig就是一种 后台语言，可以与服务器进行通讯。此时的php是作为一个独立的程序运行的，特点就是耗费内存。
+>
+>  
+>
+> **FAST CGI：**
+>
+> 　　fast cgi是一个常驻(long-live)型的CGI，它可以一直执行着，只要激活后，不会每次都要花费时间去fork一个新进程。这种方式 是与语言无关的、可伸缩架构的CGI开放扩展，其主要行为是将CGI解释器进程保持在内存中并因此获得较 高的性能。
+>
+>  
+>
+> FAST-CGI 是微软为了解决 CGI 解释器的不足而提出改进方案。当一个请求向 web server 发送请求时，web server总会fork一个CGI解释器进程进行处理这个请求，进程处理完成之后将结果返回给web server，web server将结果返回并显示出来，进程结束，当用户再次请求同一个页面时，web server又会fork一个新进程进行请求处理，这样效率会比较低下（CGI被人诟病的主要原因）。而采用FAST-CGI 解释器的 话，当一个请求执行完毕后不会注销该进程，而是将改进程进入休眠期，当接收到新的请求时，重新启用改进程进行处理。FAST-CGI 较CGI 减少了进程的重复创建的资源占用。
+>
+> 　　进程与线程：一个进程至少存在一个或多个线程。
+>
+>  
+>
+> **2、选择**
+>
+> 　　通常win下 PHP + Apache 组合，以 ISAPI 的方式运行。
+>
+> 　　而linux下通常分为2种：
+>
+> 　　 Apache + PHP，PHP一般作为Apache 的模块进行运行；
+>
+> 　　 Nginx + PHP ，以 phpfast cgi的方式，即php-fpm的方式运行，该方式对高并发、高负载有良好的性能体现，因此很多网站采用该方式进行环境的搭建。
+>
+> 　　Nginx 较Apache 的配置要少很多，因此人为出错的概率要少一点，但也因此 Apache 的 稳定性要比Nginx 高。
+>
+>  
+>
+> 前面废话了那么多，下面才是重点 ...
+>
+> **总结：**
+>
+> - **以 ISAPI 方式运行就用 TS 线程安全版**
+> - **以 FAST-CGI 或 PHP-FPM 方式运行就用NTS 非线程安全版**
+> - **通常 Windows 下 Apache + PHP 选TS ，IIS（fast-cgi） + PHP 选TNS**
+> - **通常Linux 下 Apache + PHP 选TS，Nginx + PHP 选TNS**
+
+
+
++ <code>nts</code>版本会报<code>500</code>内部错误
+
+![Pass04_2](./img/Pass04_2.png)
+
+
+
++ 非<code>nts</code>版本没有这样的条件
+
+这关攻关失败，容后继续
+
+
+
+## Pass05
+
