@@ -380,3 +380,146 @@ SetHandler application/x-httpd-php .png
 
 ## Pass05
 
++ 使用的版本
+
+​	这里我使用的版本是<code>php5.4.45 nts</code>以及<code>Apache2.4.39</code>
+
+![Pass05_1](./img/Pass05_1.PNG)
+
+![Pass05_2](./img/Pass05_2.png)
+
+
+
++ 点开提示
+
+![Pass05_3](./img/Pass05_3.png)
+
+
+
++ 查看源码
+
+![Pass05_4](./img/Pass05_4.png)
+
+​        源码里把所有可以解析的后缀名都给写死了，包括大小写，转换，空格，还有点号，正常的php类文件上传不了了，并且拒绝上传 <code>.htaccess</code> 文件；反复观察发现没有被限制的后缀名有<code> .php7</code> 以及<code> .ini</code>
+
+
+
++ 百度一番<code>ini</code>的知识
+
+~~~ tex
+user.ini ： 自 PHP 5.3.0 起，PHP 支持基于每个目录的 .htaccess 风格的 INI 文件。此类文件仅被
+CGI／FastCGI SAPI 处理。此功能使得 PECL 的 htscanner 扩展作废。如果使用 Apache，则用
+.htaccess 文件有同样效果。
+   
+除了主 php.ini 之外，PHP 还会在每个目录下扫描 INI 文件，从被执行的 PHP 文件所在目录开始一直上升到 web
+根目录（$_SERVER['DOCUMENT_ROOT'] 所指定的）。如果被执行的 PHP 文件在 web 根目录之外，则只扫描该目录。
+   
+在 .user.ini 风格的 INI 文件中只有具有 PHP_INI_PERDIR 和 PHP_INI_USER 模式的 INI
+设置可被识别。
+   
+两个新的 INI 指令，user_ini.filename 和 user_ini.cache_ttl 控制着用户 INI 文件的使用。
+   
+user_ini.filename 设定了 PHP 会在每个目录下搜寻的文件名；如果设定为空字符串则 PHP 不会搜寻。默认值是
+.user.ini。
+   
+user_ini.cache_ttl 控制着重新读取用户 INI 文件的间隔时间。默认是 300 秒（5 分钟）。
+~~~
+
+<code>php.ini</code> 是<code>php</code>的配置文件，<code>.user.ini</code> 中的字段也会被 <code>php</code> 视为配置文件来处理，从而导致<code>php</code>的文件解析漏洞。
+
+
+
++ 引发<code>.user.ini</code>解析漏洞需要三个前提条件
+
+~~~ tex
+服务器脚本语言为PHP  
+
+服务器使用CGI／FastCGI模式  
+
+上传目录下要有可执行的php文件
+~~~
+
+
+
++ 百度下<code>CGI</code>
+
+~~~ tex
+  什么是 CGI
+       CGI 的全称为“通用网关接口”（Common Gateway Interface），为 HTTP 服务器与其他机器上的程序服务通信交流的一种工具， CGI 程序须运行在网络服务器上。
+   
+       传统 CGI 接口方式的主要缺点是性能较差，因为每次 HTTP 服务器遇到动态程序时都需要重新启动解析器来执行解析，之后结果才会被返回给 HTTP
+       服务器。这在处理高并发访问时几乎是不可用的，因此就诞生了 FastCGI。另外，传统的 CGI 接口方式安全性也很差，故而现在已经很少被使用了。
+   
+       什么是 FastCGI
+       FastCGI 是一个可伸缩地、高速地在 HTTP 服务器和动态服务脚本语言间通信的接口（在 Linux 下， FastCGI 接口即为 socket，这个socket 可以是文件 socket，也可以是IP socket），主要优点是把动态语言和 HTTP
+   服务器分离开来。多数流行的 HTTP 服务器都支持 FastCGI，包括 Apache 、 Nginx 和 Lighttpd 等。
+   
+       同时，FastCGI也被许多脚本语言所支持，例如当前比较流行的脚本语言PHP。FastCGI 接口采用的是C/S架构，它可以将 HTTP 服务器和脚本服务器分开，同时还能在脚本解析服务器上启动一个或多个脚本来解析守护进程。当 HTTP
+   服务器遇到动态程序时，可以将其直接交付给 FastCGI 进程来执行，然后将得到结果返回给浏览器。这种方式可以让 HTTP
+   服务器专一地处理静态请求，或者将动态脚本服务器的结果返回给客户端，这在很大程度上提高整个应用系统的性能。
+
+~~~
+
+
+
++ 对比下，<code>php</code>语言与<code>CGI</code>对于我们的<code>Apache</code>和环境均满足
+
+
+
++ 创建<code>.user.ini</code>文件并上传
+
+![Pass05_5](./img/Pass05_5.png)
+
+<code>.user.ini</code>文件里的意思是：所有的<code>php</code>文件都自动包含<code>666.jpg</code>文件。<code>.user.ini</code>相当于一个用户自定义的<code>php.ini</code>
+
+
+
++ 上传<code>666.jpg</code>文件，文件内容为：
+
+![Pass05_6](./img/Pass05_6.PNG)
+
+
+
++ 使用蚁剑连接
+
+  + 等待5分钟
+  + 复制图像地址
+
+  ![Pass05_7](./img/Pass05_7.png)
+
+  ![Pass05_8](./img/Pass05_8.png)
+
+  
+
+  + 右键点击添加数据，用蚁剑访问
+
+![Pass05_9](./img/Pass05_9.png)
+
+
+
++ 配置数据，将<code>URL</code>地址设为图像地址，但文件名改为<code>readme.php</code>，连接密码设置为 666
+
+![Pass05_10](./img/Pass05_10.png)
+
+
+
++ 点击确定，发现已经拿到<code>shell</code>
+
+![Pass05_11](./img/Pass05_11.png)
+
+
+
++ 双击<code>shell</code>，出现对应的数据，成功
+
+![Pass05_12](./img/Pass05_12.PNG)
+
+
+
+~~~ tex
+ps: 蚁剑相关的文档查看对应的url:
+	https://github.com/AntSwordProject
+	https://github.com/AntSwordProject/antSword
+	https://github.com/AntSwordProject/AntSword-Loader
+	https://github.com/eastmountyxz/AntSword-Experiment
+~~~
+
