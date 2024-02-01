@@ -591,3 +591,25 @@ ps: 蚁剑相关的文档查看对应的url:
 
 ## Pass07
 
++ 首先查看源码，对比上一关发现少了收尾去空
+
+![Pass07_1](./img/Pass07_1.png)
+
+
+
++ 思路是在文件后面加空格，但由于<code>windows</code>特性，文件名后空格会直接删除，不能直接上传<code>.php</code>后加空格，所以要用<code>burp</code>抓包后再加空格如下图
+
+![Pass07_2](./img/Pass07_2.png)
+
+
+
++ 如下所示，绕过成功
+
+![Pass07_3](./img/Pass07_3.png)
+
+![Pass07_4](./img/Pass07_4.PNG)
+
+
+
+## Pass08
+
