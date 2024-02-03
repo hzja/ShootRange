@@ -764,3 +764,8 @@ ps: 蚁剑相关的文档查看对应的url:
 + 双击已经添加的数据，发现成功<code>getshell</code>
 
 ![Pass08_16](./img/Pass08_16.PNG)
+
+
+
+## Pass09
+
