@@ -1016,3 +1016,116 @@ http://192.168.0.102:8080/upload-labs/upload/202402050507382067.php::$data
 
 ### 方法一
 
++ 首先查看提示
+
+![Pass11_1](./img/Pass11_1.PNG)
+
+
+
++ 查看源码
+
+![Pass11_2](./img/Pass11_2.PNG)
+
+这一关黑名单用<code>str_ireplace()</code>函数寻找文件名中存在的黑名单字符串将它替换成空，可用双写绕过黑名单
+
+
+
++ 编写脚本<code>ElevenFirstMethod.php</code>
+
+![Pass11_4](./img/Pass11_4.PNG)
+
+
+
++ 上传脚本文件<code>ElevenFirstMethod.php</code>
+
+![Pass11_6](./img/Pass11_6.PNG)
+
+
+
++ 使用<code>burpsuite</code>拦截并将脚本文件<code>ElevenFirstMethod.php</code>的后缀<code>.php</code>改为<code>.pphphp</code>
+
+![Pass11_7](./img/Pass11_7.png)
+
+![Pass11_8](./img/Pass11_8.png)
+
+
+
++ 最终成功上传脚本文件<code>ElevenFirstMethod.php</code>并右键打开脚本文件<code>ElevenFirstMethod.php</code>
+
+![Pass11_9](./img/Pass11_9.png)
+
+
+
++ 成功执行脚本文件<code>ElevenFirstMethod.php</code>
+
+![Pass11_10](./img/Pass11_10.PNG)
+
+
+
+
+
+### 方法二
+
++ 查看提示
+
+![Pass11_1](./img/Pass11_1.PNG)
+
+
+
++ 查看源代码
+
+![Pass11_2](./img/Pass11_2.PNG)
+
+
+
++ 编辑脚本文件<code>ElevenSecondMethod.php</code>
+
+![Pass11_11](./img/Pass11_11.png)
+
+
+
++ 上传脚本文件<code>ElevenSecondMethod.php</code>
+
+![Pass11_12](./img/Pass11_12.png)
+
+
+
++ 同样用<code>burpsuite</code>拦截并将脚本文件<code>ElevenSecondMethod.php</code>的后缀<code>.php</code>改为<code>.pphphp</code>
+
+![Pass11_13](./img/Pass11_13.png)
+
+![Pass11_14](./img/Pass11_14.png)
+
+
+
++  成功上传文件<code>ElevenSecondMethod.php</code>并右键打开
+
+![Pass11_15](./img/Pass11_15.png)
+
+
+
++ 成功打开上传的脚本文件<code>ElevenSecondMethod.php</code>同时复制脚本文件的网址
+
+~~~ shell
+ http://192.168.12.55:8080/upload-labs/upload/ElevenSecondMethod.php
+~~~
+
+![Pass11_16](./img/Pass11_16.png)
+
+
+
++ 用蚁剑添加数据并配置；<code>URL地址</code>填写上传文件的网址，<code>连接密码</code>根据脚本<code>ElevenSecondMethod.php</code>里的数据填写
+
+![Pass11_17](./img/Pass11_17.PNG)
+
+
+
++ 最终成功<code>getshell</code>，添加数据成功
+
+![Pass11_18](./img/Pass11_18.PNG)
+
+
+
++ 双击添加到的数据，成功连接
+
+![Pass11_19](./img/Pass11_19.PNG)
