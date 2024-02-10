@@ -1129,3 +1129,150 @@ http://192.168.0.102:8080/upload-labs/upload/202402050507382067.php::$data
 + 双击添加到的数据，成功连接
 
 ![Pass11_19](./img/Pass11_19.PNG)
+
+
+
+## Pass12
+
+### 方法一
+
++ 首先查看提示
+
+![Pass12_1](./img/Pass12_1.PNG)
+
+
+
++ 查看源代码，关键代码是这句
+
+![Pass12_2](./img/Pass12_2.png)
+
+~~~ shell
+url中的%00（只要是这种%xx）的形式，webserver会把它当作十六进制处理，然后把16进制的hex自动翻译成ascii码值“NULL”,实现了截断burpsuite中16进制编辑器将空格20改成了00;
+本质上来说，都是利用0x00是字符串的结束标识符，进行截断处理;
+只不过GET传参需要url编码成%00而已;
+原理：php的一些函数的底层是C语言，而move_uploaded_file就是其中之一，遇到0x00会截断，0x表示16进制，URL中%00解码成16进制就是0x00。
+~~~
+
+~~~ tex
+%00截断
+%00的使用是在路径上！
+%00的使用是在路径上！
+%00的使用是在路径上！
+重要的话说三遍。如果在文件名上使用，就无法正常截断了。如：aaa.php%00bbb.jpg
+~~~
+
+~~~ tex
+00截断的限制条件是PHP<5.3.29，且GPC关闭
+因为当 magic_quotes_gpc 打开时，所有的 ' (单引号), " (双引号), \ (反斜线) and 空字符会自动转为含有反斜线的转义字符。
+magic_quotes_gpc 着重偏向数据库方面，是为了防止sql注入，但magic_quotes_gpc开启还会对$_REQUEST, $_GET,$_POST,$_COOKIE 输入的内容进行过滤
+~~~
+
+
+
+<code>save_path</code>是一个可控的变量，后面还有一个后缀名需要绕过，这个时候需要使用<code>%00</code>截断，不过这个东西已经是旧时代的产物的，所以有使用条件
+
+~~~ shell
+php版本小于5.3.4
+php的magic_quotes_gpc为OFF状态
+~~~
+
+
+
++ 编辑脚本文件<code>TwelveFirstMethod.php</code>
+
+![Pass12_3](./img/Pass12_3.PNG)
+
+
+
++ 满足条件后上传脚本文件<code>TwelveFirstMethod.php</code>然后上传，用<code>burpsuite</code>拦截
+
+![Pass12_5](./img/Pass12_5.PNG)
+
+
+
++ 将请求的这两个地方修改
+
+![Pass12_8](./img/Pass12_8.png)
+
+
+
++ 由于条件不满足要求，主要是<code>php<code>版本不满足要求，所以最终得不到想要的结果
+
+![Pass12_7](./img/Pass12_7.PNG)
+
+
+
++ 这个案例没有太大的参考价值，直接跳过。。。
+
+
+
+## Pass13
+
+### 方法一
+
++ 首先查看提示
+
+![Pass13_1](./img/Pass13_1.png)
+
+
+
++ 查看代码
+
+![Pass13_2](./img/Pass13_2.PNG)
+
+
+
++ 编写脚本<code>ThirteenFirstMethod.php</code>
+
+~~~ shell
+<?php phpinfo(); ?>
+~~~
+
+![Pass13_3](./img/Pass13_3.PNG)
+
+
+
++ 上传脚本<code>ThirteenFirstMethod.php</code>
+
+![Pass13_5](./img/Pass13_5.PNG)
+
+
+
++ 用<code>burpsuite</code>拦截上传脚本<code>ThirteenFirstMethod.php</code>
+
+![Pass13_6](./img/Pass13_6.PNG)
+
+
+
++ 修改<code>URL</code>网址和文件名如下
+
+![Pass13_7](./img/Pass13_7.png)
+
+
+
++ 选中<code>%00</code>，并右键选中转换，进行网址转换<code>decode</code>
+
+![Pass13_8](./img/Pass13_8.PNG)
+
+
+
++ 显示上传失败，应该是版本条件不满足
+
+~~~ shell
+需要满足以下条件:
+	php版本小于5.3.4
+	php的magic_quotes_gpc为OFF状态	
+~~~
+
+![Pass13_9](./img/Pass13_9.png)
+
+
+
++ 挑战失败
+
+
+
+## Pass14
+
+### 方法一
+
