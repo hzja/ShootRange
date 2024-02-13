@@ -9,8 +9,13 @@
   + [Upload-labs靶场通关笔记(含代码审计)](https://blog.csdn.net/weixin_54894046/article/details/127239720?ops_request_misc=%7B%22request%5Fid%22%3A%22170438292316800215095603%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170438292316800215095603&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-3-127239720-null-null.142^v99^control&utm_term=upload-labs通关&spm=1018.2226.3001.4187)
   + [upload-labs详解1-19关通关全解(最全最详细)](https://blog.csdn.net/qq_53003652/article/details/129969951?ops_request_misc=%7B%22request%5Fid%22%3A%22170636374116800222847150%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170636374116800222847150&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-129969951-null-null.142^v99^pc_search_result_base4&utm_term=upload-labs通关&spm=1018.2226.3001.4187)
   + [文件上传漏洞之upload-labs打靶笔记-CSDN博客](https://blog.csdn.net/m0_60716947/article/details/124608448?ops_request_misc=%7B%22request%5Fid%22%3A%22170758532616800180610738%22%2C%22scm%22%3A%2220140713.130102334.pc%5Fall.%22%7D&request_id=170758532616800180610738&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~first_rank_ecpm_v1~rank_v31_ecpm-23-124608448-null-null.142^v99^pc_search_result_base4&utm_term=upload-labs报错)
+  + [生命在于折腾——upload-labs-CSDN博客](https://blog.csdn.net/qq_15131581/article/details/126527056?spm=1001.2101.3001.6650.4&utm_medium=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-4-126527056-blog-129969951.235^v43^pc_blog_bottom_relevance_base6&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~CTRLIST~Rate-4-126527056-blog-129969951.235^v43^pc_blog_bottom_relevance_base6&utm_relevant_index=9)
   
 + 本地打开地址：<code>http://localhost/upload-labs</code>
+
++ 在线靶场地址:<code>[upload-labs (shifa23.com)](http://uploads.shifa23.com/)</code>
+
++ 一句话木马：[Web安全-一句话木马_yijuhuamuma-CSDN博客](https://blog.csdn.net/weixin_39190897/article/details/86772765?ops_request_misc=%7B%22request%5Fid%22%3A%22170759274516800188526622%22%2C%22scm%22%3A%2220140713.130102334.pc%5Fall.%22%7D&request_id=170759274516800188526622&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~first_rank_ecpm_v1~rank_v31_ecpm-1-86772765-null-null.142^v99^pc_search_result_base4&utm_term=jpg如何夹一句话木马&spm=1018.2226.3001.4187)
 
 ## Pass 01
 
@@ -1283,7 +1288,15 @@ php的magic_quotes_gpc为OFF状态
 
 
 
-+ 查看源代码
++ 查看源代码，由此可判断这关会读取判断上传文件的前两个字节，判断上传文件类型，并且后端会根据判断得到的文件类型重命名上传文件，使用 `图片马 + 文件包含` 绕过
+
+~~~ shell
+补充知识：
+1.Png图片文件包括8字节：89 50 4E 47 0D 0A 1A 0A。即为 .PNG。
+2.Jpg图片文件包括2字节：FF D8。
+3.Gif图片文件包括6字节：47 49 46 38 39|37 61 。即为 GIF 89(7)a。
+4.Bmp图片文件包括2字节：42 4D。即为 BM。
+~~~
 
 ![Pass14_2](./img/Pass14_2.PNG)
 
@@ -1407,3 +1420,148 @@ URL=http://192.168.104.55:8080/upload-labs/include.php(文件包含漏洞)?file=
 ![Pass14_19](./img/Pass14_19.PNG)
 
 ![Pass14_21](./img/Pass14_21.PNG)
+
+
+
+## Pass15
+
+### 方法一
+
++ 查看提示
+
+![Pass15_1](./img/Pass15_1.PNG)
+
+
+
++ 查看源代码
+
+~~~ shell
+getimagesize()函数：
+- 对目标的十六进制的前几个字符串读取。比如GIF的文件头问GIF89a，png的文件头为塒NG，然后返回一个具有四个单元的数组;
+- 索引0包含图像宽度的像素值;
+- 索引1包含图像高度的像素值;
+- 索引2是图像类型的标记：1 = GIF，2 = JPG，3 = PNG，4 = SWF，5 = PSD，6 = BMP，7 = TIFF(intel byte order)，8 = TIFF(motorola byte order)，9 = JPC，10 = JP2，11 = JPX，12 = JB2，13 = SWC，14 = IFF，15 = WBMP，16 = XBM。这些标记与 PHP 4.3.0 新加的 IMAGETYPE 常量对应;
+- 索引3是文本字符串，内容为"height="yyy" width="xxx""，可直接用于 IMG 标记;
+~~~
+
+![Pass15_2](./img/Pass15_2.PNG)
+
+
+
++ 编写脚本<code>FifthteenFirstMethod.php</code>
+
+~~~ shell
+记事本打开代码文件，在文件头添加GIF 89A则文件会被解析为GIF图像
+~~~
+
+![Pass15_3](./img/Pass15_3.PNG)
+
+
+
++ 上传脚本<code>FifthteenFirstMethod.php</code>
+
+![Pass15_5](./img/Pass15_5.PNG)
+
+
+
++ 点击上传后上传成功
+
+![Pass15_6](./img/Pass15_6.PNG)
+
+
+
++ 右键在新的标签页打开图像
+
+![Pass15_7](./img/Pass15_7.png)
+
+
+
++ 成功在新的标签页打开<code>GIF</code>图像，复制对应的<code>GIF</code>图像网址
+
+![Pass15_8](./img/Pass15_8.png)
+
+
+
++ 在这里打开文件包含漏洞地址
+
+![Pass15_9](./img/Pass15_9.png)
+
+
+
++ 文件包含漏洞的网址
+
+![Pass15_10](./img/Pass15_10.png)
+
+
+
++ 在后面加上<code>?file=文件地址</code>
+
+![Pass15_11](./img/Pass15_11.png)
+
+
+
++ 点确定，命令成功执行
+
+![Pass15_12](./img/Pass15_12.PNG)
+
+
+
+###  方法二
+
++ 编写脚本<code>FifthteenSecondMethod.php</code>
+
+![Pass15_13](./img/Pass15_13.PNG)
+
+
+
++ 点击上传文件，上传成功
+
+![Pass15_14](./img/Pass15_14.PNG)
+
+
+
++ 右键在新的标签页打开图像
+
+![Pass15_15](./img/Pass15_15.PNG)
+
+
+
++ 成功在新的标签页打开<code>GIF</code>图像文件，复制图像的地址
+
+![Pass15_16](./img/Pass15_16.png)
+
+
+
++ 打开文件包含漏洞
+
+![Pass15_17](./img/Pass15_17.png)
+
+
+
++ 在新的标签页成功打开文件包含漏洞网页
+
+![Pass15_18](./img/Pass15_18.PNG)
+
+
+
++ 在文件漏洞网址后加上<code>?file=GIF文件地址</code>
+
+![Pass15_19](./img/Pass15_19.PNG)
+
+
+
++ 在蚁剑添加并配置数据如下，网址替换成自己电脑对应的<code>IP</code>
+
+![Pass15_20](./img/Pass15_20.PNG)
+
+
+
++ 成功添加数据
+
+![Pass15_21](./img/Pass15_21.PNG)
+
+
+
++ 双击打开网页链接，成功<code>getshell</code>
+
+![Pass15_22](./img/Pass15_22.PNG)
