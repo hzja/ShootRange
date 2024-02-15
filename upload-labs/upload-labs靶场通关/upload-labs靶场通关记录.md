@@ -1565,3 +1565,152 @@ getimagesize()函数：
 + 双击打开网页链接，成功<code>getshell</code>
 
 ![Pass15_22](./img/Pass15_22.PNG)
+
+
+
+## Pass16
+
+### 方法一
+
++ 查看提示
+
+![Pass16_1](./img/Pass16_1.PNG)
+
+
+
++ 知识补充：<code>exif_imagetype()</code>函数
+
+~~~ tex
+知识补充： exif_imagetype()读取一个图像的第一个字节并检查其后缀名;
+返回值与getimagesize()函数返回的索引2相同，但是速度比getimagesize()快得多，同时要开启php_exif模块;
+~~~
+
+![Pass16_23](./img/Pass16_23.png)
+
+
+
++ 查看源代码
+
+![Pass16_2](./img/Pass16_2.PNG)
+
+
+
++ 编写脚本<code>SixteenFirstMethod.php</code>
+
+![Pass16_3](./img/Pass16_3.PNG)
+
+
+
++ 上传脚本<code>SixteenFirstMethod.php</code>到上传点
+
+![Pass16_5](./img/Pass16_5.PNG)
+
+
+
++ 点击上传，发现页面被覆盖如下
+
+![Pass16_6](./img/Pass16_6.PNG)
+
+
+
++ 开启<code>phpstudy</code>的<code>php_exif</code>模块
+
+![Pass16_7](./img/Pass16_7.PNG)
+
+
+
++ 重新上传脚本<code>SixteenFirstMethod.php</code>，发现上传成功
+
+![Pass16_8](./img/Pass16_8.PNG)
+
+
+
++ 右键在新的页面打开图片链接
+
+![Pass16_9](./img/Pass16_9.png)
+
+
+
++ 成功在新的页面打开图片链接，同时复制图片链接的地址
+
+![Pass16_10](./img/Pass16_10.png)
+
+
+
++ 打开文件包含漏洞的页面
+
+![Pass16_11](./img/Pass16_11.png)
+
+
+
++ 成功打开文件包含漏洞的页面
+
+![Pass16_12](./img/Pass16_12.png)
+
+
+
++ 在文件包含漏洞页面的网址后加上<code>?file=图片网址</code>，成功执行脚本命令
+
+![Pass16_13](./img/Pass16_13.png)
+
+
+
+### 方法二
+
++ 编写脚本<code>SixteenSecondMethod.php</code>
+
+![Pass16_4](./img/Pass16_4.PNG)
+
+
+
++ 上传脚本<code>SixteenSecondMethod.php</code>到注入点
+
+![Pass16_14](./img/Pass16_14.PNG)
+
+
+
++ 点击上传，成功上传脚本文件<code>SixteenSecondMethod.php</code>并被解析为<code>GIF</code>图像
+
+![Pass16_15](./img/Pass16_15.PNG)
+
+
+
++ 右键点击，在新的页面打开图像
+
+![Pass16_16](./img/Pass16_16.png)
+
+
+
++ 成功在新的页面打开图像，复制图像的网址
+
+![Pass16_17](./img/Pass16_17.png)
+
+
+
++ 打开有文件包含漏洞的页面
+
+![Pass16_18](./img/Pass16_18.png)
+
+
+
++ 在文件包含漏洞页面网址后加上后缀<code>?file=图片网址</code>，文件代码成功执行 
+
+![Pass16_19](./img/Pass16_19.png)
+
+
+
++ 打开蚁剑，添加数据并配置，<code>URL</code>地址为文件包含漏洞的页面网址加上<code>?file=图片网址</code>，而连接密码则由脚本<code>SixteenSecondMethod.php</code>决定
+
+![Pass16_20](./img/Pass16_20.PNG)
+
+
+
++ 成功添加数据
+
+![Pass16_21](./img/Pass16_21.PNG)
+
+
+
++ 双击添加的数据，成功<code>getshell</code>
+
+![Pass16_22](./img/Pass16_22.PNG)
