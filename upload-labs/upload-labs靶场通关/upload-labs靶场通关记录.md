@@ -1714,3 +1714,229 @@ getimagesize()函数：
 + 双击添加的数据，成功<code>getshell</code>
 
 ![Pass16_22](./img/Pass16_22.PNG)
+
+
+
+## Pass17
+
+### 方法一
+
++ [文件上传绕过—二次渲染漏洞](https://blog.csdn.net/weixin_45588247/article/details/119177948)
+
++ [ 文件上传绕过—条件竞争漏洞](https://blog.csdn.net/weixin_45588247/article/details/118796606?spm=1001.2014.3001.5501)
+
+
+
++ 首先查看提示
+
+![Pass17_01](./img/Pass17_01.PNG)
+
+
+
++ 查看源代码，源代码如下
+
+~~~ shell
+$is_upload = false;
+$msg = null;
+if (isset($_POST['submit'])){
+    // 获得上传文件的基本信息，文件名，类型，大小，临时文件路径
+    $filename = $_FILES['upload_file']['name'];
+    $filetype = $_FILES['upload_file']['type'];
+    $tmpname = $_FILES['upload_file']['tmp_name'];
+
+    $target_path=UPLOAD_PATH.'/'.basename($filename);
+
+    // 获得上传文件的扩展名
+    $fileext= substr(strrchr($filename,"."),1);
+
+    //判断文件后缀与类型，合法才进行上传操作
+    if(($fileext == "jpg") && ($filetype=="image/jpeg")){
+        if(move_uploaded_file($tmpname,$target_path)){
+            //使用上传的图片生成新的图片
+            $im = imagecreatefromjpeg($target_path);
+
+            if($im == false){
+                $msg = "该文件不是jpg格式的图片！";
+                @unlink($target_path);
+            }else{
+                //给新图片指定文件名
+                srand(time());
+                $newfilename = strval(rand()).".jpg";
+                //显示二次渲染后的图片（使用用户上传图片生成的新图片）
+                $img_path = UPLOAD_PATH.'/'.$newfilename;
+                imagejpeg($im,$img_path);
+                @unlink($target_path);
+                $is_upload = true;
+            }
+        } else {
+            $msg = "上传出错！";
+        }
+
+    }else if(($fileext == "png") && ($filetype=="image/png")){
+        if(move_uploaded_file($tmpname,$target_path)){
+            //使用上传的图片生成新的图片
+            $im = imagecreatefrompng($target_path);
+
+            if($im == false){
+                $msg = "该文件不是png格式的图片！";
+                @unlink($target_path);
+            }else{
+                 //给新图片指定文件名
+                srand(time());
+                $newfilename = strval(rand()).".png";
+                //显示二次渲染后的图片（使用用户上传图片生成的新图片）
+                $img_path = UPLOAD_PATH.'/'.$newfilename;
+                imagepng($im,$img_path);
+
+                @unlink($target_path);
+                $is_upload = true;               
+            }
+        } else {
+            $msg = "上传出错！";
+        }
+
+    }else if(($fileext == "gif") && ($filetype=="image/gif")){
+        if(move_uploaded_file($tmpname,$target_path)){
+            //使用上传的图片生成新的图片
+            $im = imagecreatefromgif($target_path);
+            if($im == false){
+                $msg = "该文件不是gif格式的图片！";
+                @unlink($target_path);
+            }else{
+                //给新图片指定文件名
+                srand(time());
+                $newfilename = strval(rand()).".gif";
+                //显示二次渲染后的图片（使用用户上传图片生成的新图片）
+                $img_path = UPLOAD_PATH.'/'.$newfilename;
+                imagegif($im,$img_path);
+
+                @unlink($target_path);
+                $is_upload = true;
+            }
+        } else {
+            $msg = "上传出错！";
+        }
+    }else{
+        $msg = "只允许上传后缀为.jpg|.png|.gif的图片文件！";
+    }
+}
+
+~~~
+
+![Pass17_02](./img/Pass17_02.PNG)
+
+
+
++ 补充原理说明
+
+~~~ tex
+二次渲染原理：
+    在我们上传文件后，网站会对图片进行二次处理（格式、尺寸要求等），服务器会把里面的内容进行替换更新，处理完成后，根据我们原有的图片生成一个新的图片并放到网站对应的标签进行显示。
+~~~
+
+~~~ tex
+绕过：
+    配合文件包含漏洞：
+        将一句话木马插入到网站二次处理后的图片中，也就是把一句话插入图片在二次渲染后会保留的那部分数据里，确保     不会在二次处理时删除掉。这样二次渲染后的图片中就存在了一句话，在配合文件包含漏洞获取webshell;
+
+    可以配合条件竞争：
+        这里二次渲染的逻辑存在漏洞，先将文件上传，之后再判断，符合就保存，不符合删除，可利用条件竞争来进行爆破     上传;
+~~~
+
+
+
++ 网上找到素材<code>22.gif</code>，用<code>010Editor</code>软件打开该<code>gif</code>文件并显示为16进制和2进制
+
+![Pass17_03](./img/Pass17_03.PNG)
+
+
+
++ 上传<code>22.gif</code>到上传点
+
+![Pass17_04](./img/Pass17_04.PNG)
+
+
+
++ 成功上传<code>22.gif</code>到上传点
+
+![Pass17_05](./img/Pass17_05.PNG)
+
+
+
++ 右键，选择在新的页面打开图像即可
+
+![Pass17_06](./img/Pass17_06.png)
+
+
+
++ 成功在新的页面打开图像，复制图像的网址
+
+![Pass17_07](./img/Pass17_07.png)
+
+
+
++ 右键，点击另存为方式保存图像为<code>23.gif</code>
+
+![Pass17_08](./img/Pass17_08.png)
+
+
+
++ 成功保存图像<code>23.gif</code>到指定位置
+
+![Pass17_09](./img/Pass17_09.PNG)
+
+
+
++ 用<code>010Editor</code>打开<code>22.gif</code>，搜索<code>22.gif</code>文件里的<code>php</code>，发现代码注入如下
+
+![Pass17_21](./img/Pass17_21.PNG)
+
+![Pass17_12](./img/Pass17_12.png)
+
+
+
++ 用<code>010Editor</code>打开<code>23.gif</code>，搜索<code>23.gif</code>文件里的<code>php</code>
+
+![Pass17_14](./img/Pass17_14.png)
+
+![Pass17_13](./img/Pass17_13.png)
+
+发现经过二次渲染之后，注入的代码并没有被替换则代码可成功执行
+
+
+
++ 用<code>010Editor</code>打开<code>22.gif</code>和<code>23.gif</code>，并比较两者的二进制代码有什么不同，发现只有一个有差异的地方其他没变
+
+![Pass17_10](./img/Pass17_10.png)
+
+![Pass17_22](./img/Pass17_22.PNG)
+
+
+
++ 打开文件包含漏洞的页面
+
+![Pass17_16](./img/Pass17_16.png)
+
+
+
++ 在文件包含漏洞页面的网址后加上<code>?file=前面复制的已上传gif图像的地址</code>，并回车，代码成功执行
+
+![Pass17_17](./img/Pass17_17.png)
+
+
+
++ 在蚁剑上添加数据并配置如下
+
+![Pass17_18](./img/Pass17_18.PNG)
+
+
+
++ 点击添加，成功添加<code>shell</code>
+
+![Pass17_19](./img/Pass17_19.PNG)
+
+
+
++ 双击成功添加的<code>shell</code>，成功<code>getshell</code>
+
+![Pass17_20](./img/Pass17_20.PNG)
