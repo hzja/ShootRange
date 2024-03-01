@@ -32,6 +32,14 @@
 
 
 
+## mysql数据结构
+
+~~~ tex
+    练习靶场前需了解以下mysql数据库结构，mysql数据库5.0以上版本有一个自带的数据库叫做information_schema,该数据库下面有两个表一个是tables和columns。tables这个表的table_name字段下面是所有数据库存在的表名。table_schema字段下是所有表名对应的数据库名。columns这个表的colum_name字段下是所有数据库存在的字段名。columns_schema字段下是所有表名对应的数据库。
+~~~
+
+
+
 ## sql-labs通关
 
 ### Less-1
@@ -361,5 +369,5 @@ http://localhost/sqli-labs/Less-2/
 
 
 
-# Less-4
+### Less-4
 
