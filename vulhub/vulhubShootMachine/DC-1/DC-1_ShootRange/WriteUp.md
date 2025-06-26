@@ -637,3 +637,10 @@ ssh flag4@192.168.223.131
 + [DC: 1 ~ VulnHub靶场下载地址](https://www.vulnhub.com/entry/dc-1,292/)
 
 + [[ vulnhub靶机通关篇 \] 渗透测试综合靶场 DC-1 通关详解 (附靶机搭建教程)_vulnhub靶场-CSDN博客](https://blog.csdn.net/qq_51577576/article/details/129469819)
+
++ [Nmap参考指南(Man Page)](https://nmap.org/man/zh/index.html)
+
++ [Metasploit官方文档](https://docs.metasploit.com/)
+
++ [Kali官方文档](https://www.kali.org/docs/)
+

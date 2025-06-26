@@ -1,5 +1,3 @@
-[[ vulnhub靶机通关篇 \] 渗透测试综合靶场 DC-2 通关详解 (附靶机搭建教程)_vnlubun靶场-CSDN博客](https://blog.csdn.net/qq_51577576/article/details/129470150)
-
 [[ vulnhub靶机通关篇 \] 渗透测试综合靶场 DC-3 通关详解 (附靶机搭建教程)-CSDN博客](https://blog.csdn.net/qq_51577576/article/details/129470364)
 
 [[ vulnhub靶机通关篇 \] 渗透测试综合靶场 DC-4 通关详解 (附靶机搭建教程)_vulnhub靶场题解-CSDN博客](https://blog.csdn.net/qq_51577576/article/details/129479752)
