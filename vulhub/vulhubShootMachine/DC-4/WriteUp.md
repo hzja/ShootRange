@@ -13,3 +13,5 @@
 [[ windows权限维持 \] 利用永恒之蓝(MS17-010)漏洞取靶机权限并创建后门账户_永恒之蓝 怎么利用新增系统用户-CSDN博客](https://blog.csdn.net/qq_51577576/article/details/143351584)
 
 [[ 漏洞复现篇\] IE浏览器远程代码执行漏洞(CVE-2018-8174)复现-CSDN博客](https://blog.csdn.net/qq_51577576/article/details/124666480)
+
+[靶机渗透练习_hirak0的博客-CSDN博客](https://blog.csdn.net/perpetual_blue/category_11755034.html)
