@@ -177,7 +177,11 @@
 
 
 
-+ 由之前代码审计可知，前几关使用的构造<code>onclick</code>属性及<code><a href></code>标签就不好用了，由此，可尝试大小写构造<code>payload</code>如            <code>    " /><Script>alert()</Script></code>
++ 由之前代码审计可知，前几关使用的构造<code>onclick</code>属性及<code><a href></code>标签就不好用了，由此，可尝试大小写构造<code>payload</code>如            
+
+  ~~~ javascript
+  " /><Script>alert()</Script>
+  ~~~
 
 ![level6_3](./img/level6_3.PNG)
 

